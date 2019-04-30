@@ -85,6 +85,8 @@ set(MODULE_SRCS
 		modules/crop_rotation.cpp
         modules/PBSM3D.cpp
 
+		modules/fluxos/fluxos.cpp
+
 		CACHE INTERNAL "" FORCE )
 
 
@@ -132,6 +134,7 @@ set (HEADER_FILES
 
         modules/interp_met
 		modules/snobal
+		modules/fluxos
         libmaw
 		meteoio
 		meteoio/meteoLaws
