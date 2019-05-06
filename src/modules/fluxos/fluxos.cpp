@@ -19,68 +19,102 @@
 
 #include "fluxos.hpp"
 
+REGISTER_MODULE_CPP(fluxos);
+
+fluxos::fluxos(config_file cfg) :
+    module_base("fluxos", parallel::domain, cfg)
+{
+    depends("p");
+
+    provides("water_level");
+}
+
+fluxos::~fluxos()
+{
+
+}
 
 
 void fluxos::initiation(declavar& ds)
 {
     
     std::unique_ptr<double[]> zbs1(new double[ds.mx]);   
-    double zbsw,zbnw,zbse,zbne;
+    double zbsw,zbnw,zbse,zbne,zbsum;
     unsigned int a,iy,ix,ix1,iy1;
     unsigned int nx1,ny1;
     nx1=ds.nx+1;
     ny1=ds.ny+1;
 
-    // INTERPOLATE CELL VERTICES TO CELL CENTER
+    // INTERPOLATE ELEVATIONS OF THE BOUNDARIES
     for(ix=0;ix<=nx1;ix++){
-      zbs1[ix]=(*ds.zb).at(ix,1);
-      (*ds.zb).at(ix,0) = (*ds.zb).at(ix,1);
-      (*ds.zb).at(ix,ny1) = (*ds.zb).at(ix,ds.ny);
+        zbs1[ix]=(*ds.zb).at(ix,1);
+        (*ds.zb).at(ix,0) = (*ds.zb).at(ix,1);
+        (*ds.zb).at(ix,ny1) = (*ds.zb).at(ix,ds.ny);
     }
     for(iy=0;iy<=ny1;iy++){
-      (*ds.zb).at(0,iy) = (*ds.zb).at(1,iy);
-      (*ds.zb).at(nx1,iy) = (*ds.zb).at(ds.nx,iy); 
+        (*ds.zb).at(0,iy) = (*ds.zb).at(1,iy);
+        (*ds.zb).at(nx1,iy) = (*ds.zb).at(ds.nx,iy);
     }
 
     (*ds.zb).at(0,ny1) = (*ds.zb).at(1,ds.ny);
     (*ds.zb).at(nx1,ny1) = (*ds.zb).at(ds.nx,ds.ny);
+
+    // INTERPOLATE CELL VERTICES TO CELL CENTER
     for(iy=1;iy<=ds.ny;iy++){
-      zbsw = zbs1[1];
-      iy1  = iy+1;
-      zbnw = (*ds.zb).at(1,iy1);
-      zbs1[1]=zbnw;
-      for(ix=1;ix<=ds.nx;ix++){
+        zbsw = zbs1[1];
+        iy1  = iy+1;
+        zbnw = (*ds.zb).at(1,iy1);
+        zbs1[1]=zbnw;
+        for(ix=1;ix<=ds.nx;ix++){
             ix1=ix+1;
             zbse =zbs1[ix1];
             zbne = (*ds.zb).at(ix1,iy1);
-            (*ds.zb).at(ix,iy)=(zbsw+zbse+zbnw+zbne)/4.;
+            a = 0;
+            zbsum = 0;
+            if (zbsw != 9999){
+                zbsum=zbsum + zbsw;
+                a = a + 1;
+            }
+            if (zbse != 9999){
+                zbsum=zbsum + zbse;
+                a = a + 1;
+            }
+            if (zbnw != 9999){
+                zbsum=zbsum + zbnw;
+                a = a + 1;
+            }
+            if (zbne != 9999){
+                zbsum=zbsum + zbne;
+                a = a + 1;
+            }
+            (*ds.zb).at(ix,iy)=(zbsum)/a;
             zbs1[ix1]=zbne;
             zbsw= zbse;
             zbnw= zbne;
-      }
+        }
     }
-        
+
     // INITIAL CONDITIONS
     for(iy=1;iy<=ds.ny;iy++)
     {
         for(ix=1;ix<=ds.nx;ix++)
-        {  
+        {
             (*ds.h).at(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
             (*ds.z).at(ix,iy)=(*ds.zb).at(ix,iy)+(*ds.h).at(ix,iy);
             (*ds.p).at(ix,iy)=(*ds.u).at(ix,iy)*(*ds.h).at(ix,iy);
             (*ds.q).at(ix,iy)=(*ds.v).at(ix,iy)*(*ds.h).at(ix,iy);
         }
     }
- 
-    arma::mat filedata; 
+
+    arma::mat filedata;
     bool flstatus = filedata.load("initial_conditions.txt",arma::csv_ascii);
 
-    if(flstatus == true) 
+    if(flstatus == true)
     {
         for(a=0;a<filedata.col(1).n_elem;a++)
         {
-            ix = filedata(a,0);  
-            iy = filedata(a,1);  
+            ix = filedata(a,0);
+            iy = filedata(a,1);
             (*ds.h).at(ix,iy) = filedata(a,3);
             (*ds.z).at(ix,iy) = (*ds.zb).at(ix,iy) + filedata(a,3);
             (*ds.u).at(ix,iy) = filedata(a,4);
@@ -93,7 +127,7 @@ void fluxos::initiation(declavar& ds)
     } else
     {
         std::cout << "No initial conditions (file 'initial_conditions.txt not found). All variables set to zero.'" << std::endl;
-         for(iy=1;iy<=ds.ny;iy++)
+        for(iy=1;iy<=ds.ny;iy++)
         {
             for(ix=1;ix<=ds.nx;ix++)
             {
@@ -110,30 +144,30 @@ void fluxos::initiation(declavar& ds)
     }
 
     // BOUNDARY VALUES (initial set up)
-        for(iy=0;iy<=ny1;iy++)
-        {
-          (*ds.zb).at(0,iy)=1.5*(*ds.zb).at(1,iy)-.5*(*ds.zb).at(2,iy);
-          (*ds.zb).at(nx1,iy)=1.5*(*ds.zb).at(ds.nx,iy)-.5*(*ds.zb).at(ds.nx-1,iy);
-          (*ds.z).at(0,iy)=1.5*(*ds.z).at(1,iy)-.5*(*ds.z).at(2,iy);
-          (*ds.z).at(nx1,iy)=1.5*(*ds.z).at(ds.nx,iy)-.5*(*ds.z).at(ds.nx-1,iy);
-          (*ds.h).at(0,iy)=std::max(0.0,(*ds.z).at(0,iy)-(*ds.zb).at(0,iy));
-          (*ds.h).at(nx1,iy)=std::max(0.0,(*ds.z).at(nx1,iy)-(*ds.zb).at(nx1,iy));
-          (*ds.p).at(0,iy)=0.0f;
-          (*ds.q).at(nx1,iy)=0.0f;
-          (*ds.pj).at(0,iy)=0.0f;
-        }
-        for(ix=0;ix<=nx1;ix++)
-        { 
-          (*ds.zb).at(ix,0)=1.5*(*ds.zb).at(ix,1)-.5*(*ds.zb).at(ix,2);
-          (*ds.zb).at(ix,ny1)=1.5*(*ds.zb).at(ix,ds.ny)-.5*(*ds.zb).at(ix,ds.ny-1);
-          (*ds.z).at(ix,0)=1.5*(*ds.z).at(ix,1)-.5*(*ds.z).at(ix,2);
-          (*ds.z).at(ix,ny1)=1.5*(*ds.z).at(ix,ds.ny)-.5*(*ds.z).at(ix,ds.ny-1);
-          (*ds.h).at(ix,0)=std::max(0.0,(*ds.z).at(ix,0)-(*ds.zb).at(ix,0));
-          (*ds.h).at(ix,ny1)=std::max(0.0,(*ds.z).at(ix,ny1)-(*ds.zb).at(ix,ny1));
-          (*ds.p).at(ix,0)=0.0f;
-          (*ds.q).at(ix,ny1)=0.0f;
-          (*ds.qj).at(ix,0)=0.0f;
-        }
+    for(iy=0;iy<=ny1;iy++)
+    {
+        (*ds.zb).at(0,iy)=1.5*(*ds.zb).at(1,iy)-.5*(*ds.zb).at(2,iy);
+        (*ds.zb).at(nx1,iy)=1.5*(*ds.zb).at(ds.nx,iy)-.5*(*ds.zb).at(ds.nx-1,iy);
+        (*ds.z).at(0,iy)=1.5*(*ds.z).at(1,iy)-.5*(*ds.z).at(2,iy);
+        (*ds.z).at(nx1,iy)=1.5*(*ds.z).at(ds.nx,iy)-.5*(*ds.z).at(ds.nx-1,iy);
+        (*ds.h).at(0,iy)=std::max(0.0,(*ds.z).at(0,iy)-(*ds.zb).at(0,iy));
+        (*ds.h).at(nx1,iy)=std::max(0.0,(*ds.z).at(nx1,iy)-(*ds.zb).at(nx1,iy));
+        (*ds.p).at(0,iy)=0.0f;
+        (*ds.q).at(nx1,iy)=0.0f;
+        (*ds.pj).at(0,iy)=0.0f;
+    }
+    for(ix=0;ix<=nx1;ix++)
+    {
+        (*ds.zb).at(ix,0)=1.5*(*ds.zb).at(ix,1)-.5*(*ds.zb).at(ix,2);
+        (*ds.zb).at(ix,ny1)=1.5*(*ds.zb).at(ix,ds.ny)-.5*(*ds.zb).at(ix,ds.ny-1);
+        (*ds.z).at(ix,0)=1.5*(*ds.z).at(ix,1)-.5*(*ds.z).at(ix,2);
+        (*ds.z).at(ix,ny1)=1.5*(*ds.z).at(ix,ds.ny)-.5*(*ds.z).at(ix,ds.ny-1);
+        (*ds.h).at(ix,0)=std::max(0.0,(*ds.z).at(ix,0)-(*ds.zb).at(ix,0));
+        (*ds.h).at(ix,ny1)=std::max(0.0,(*ds.z).at(ix,ny1)-(*ds.zb).at(ix,ny1));
+        (*ds.p).at(ix,0)=0.0f;
+        (*ds.q).at(ix,ny1)=0.0f;
+        (*ds.qj).at(ix,0)=0.0f;
+    }
 }
 
 void fluxos::solver_dry(declavar& ds, unsigned int ix, unsigned int iy)
@@ -770,119 +804,190 @@ void fluxos::write_results(declavar& ds, int print_tag)
 }
     
 
-void fluxos::run(mesh& domain)
-{   
+void fluxos::run(mesh& domain) {
 
     float print_next;
-    size_t ix, iy ;
-    double c0,v0,u0,hp, hpall; 
+    size_t ix, iy;
+    double c0, v0, u0, hp, hpall;
 
-    
+
     // SAVE INITIAL STATUS IN RESULTS (t = 0)
     print_next = 0.0f;
-    write_results(ds,std::round(print_next));
-    
+    write_results(ds, std::round(print_next));
+
     print_next = print_next + print_step;
 
     //reset
     ds.tim = 0;
+    forcing->zeros();
+    // setup for the forcing
+    for (size_t i = 0; i < domain->size_faces(); i++)
+    {
+        auto face = domain->face(i);
+        double precip = (*face)["p"]/1000./global_param->dt();
+
+        auto d = face->get_module_data<data>(ID);
+        auto& idx = d->rastercells;
+        if( d->rastercells.n_elem != 0)
+          forcing->elem(idx) = arma::ones<arma::vec>(idx.n_elem)*precip;
+
+//        (*ds.z)(idx) = (*ds.z)(idx) + precip*ds.dtfl;
+//        (*ds.h)(idx) = (*ds.z)(idx)-(*ds.zb)(idx);
+
+//            (*ds.h)(idx) = arma::max((*ds.z)(idx)-(*ds.zb)(idx),0.0);
+
+
+    }
+
 
     // TIME LOOP
-    while(ds.tim <= ds.ntim) 
-    {              
-        ds.dtfl=9.e10;
+    while (ds.tim <= ds.ntim)
+    {
+        ds.dtfl = 9.e10;
         hpall = 0.0f;
-        
-        // SPACE LOOP
-        for(iy=1;iy<=ds.ny;iy++)
-        {
-            for(ix=1;ix<=ds.nx;ix++)
-            {
-                auto cellid = tri_mapping->at(ix,iy);
-                auto& face = mesh->face(cellid);
-                double precip = (*face)["p"];
 
-                
-                hp = (*ds.h).at(ix,iy);
-                if(hp>ds.hdry)
-                {
-                    (*ds.ldry).at(ix,iy)=0.0f;
-                    hp=std::fmax((*ds.h).at(ix,iy),ds.hdry);
-                    hpall = std::fmax(hpall,(*ds.h).at(ix,iy));
-                    c0=sqrt(ds.gacc*(*ds.h).at(ix,iy));
-                    u0=std::fmax(.000001,fabs((*ds.p).at(ix,iy)/hp));
-                    v0=std::fmax(.000001,fabs((*ds.q).at(ix,iy)/hp));
-                    ds.dtfl=fmin(fmin(ds.cfl*ds.dxy/(u0+c0),ds.cfl*ds.dxy/(v0+c0)),ds.dtfl);
-                }else 
-                {
-                    (*ds.ldry).at(ix,iy)=1.0f;
+        // SPACE LOOP
+        for (iy = 1; iy <= ds.ny; iy++) {
+            for (ix = 1; ix <= ds.nx; ix++) {
+                hp = (*ds.h).at(ix, iy);
+                if (hp > ds.hdry) {
+                    (*ds.ldry).at(ix, iy) = 0.0f;
+                    hp = std::fmax((*ds.h).at(ix, iy), ds.hdry);
+                    hpall = std::fmax(hpall, (*ds.h).at(ix, iy));
+                    c0 = sqrt(ds.gacc * (*ds.h).at(ix, iy));
+                    u0 = std::fmax(.000001, fabs((*ds.p).at(ix, iy) / hp));
+                    v0 = std::fmax(.000001, fabs((*ds.q).at(ix, iy) / hp));
+                    ds.dtfl = fmin(fmin(ds.cfl * ds.dxy / (u0 + c0), ds.cfl * ds.dxy / (v0 + c0)), ds.dtfl);
+
+                } else {
+                    (*ds.ldry).at(ix, iy) = 1.0f;
                 }
-                ds.dtfl=fmin(print_next - ds.tim, ds.dtfl);
+                ds.dtfl = fmin(print_next - ds.tim, ds.dtfl);
             }
         }
-                
+
+        if(ds.tim == 0. || (*ds.h).max() <= 0.01)
+            ds.dtfl = 1;
+//        else
+//            LOG_DEBUG << ds.dtfl;
+
+        LOG_DEBUG << ds.tim;
         ds.tim = ds.tim + ds.dtfl;
-          
-        // hypothetical load (temporary)
-        if (ds.tim == 3600)
-        {
-            for (iy=300;iy<=500;iy++){
-              for (ix=300;ix<=800;ix++){
-                  (*ds.z).at(ix,iy) = (*ds.z).at(ix,iy) + 0.2;
-                  (*ds.h)(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
-              }
+
+        for (iy = 1; iy <= ds.ny; iy++) {
+            for (ix = 1; ix <= ds.nx; ix++) {
+                if ((*ds.zb).at(ix,iy)!=9999){
+                    (*ds.z).at(ix,iy) = (*ds.z).at(ix,iy) + forcing->at(ix,iy)*ds.dtfl;
+                    (*ds.h).at(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
+                }
             }
         }
-        
+
+
+//        //figure out which raster cells go with what triangle
+//        for (size_t i = 0; i < domain->size_faces(); i++)
+//        {
+//            auto face = domain->face(i);
+//            double precip = (*face)["p"]/1000./global_param->dt();
+//
+//            auto d = face->get_module_data<data>(ID);
+//            auto& idx = d->rastercells;
+//
+//
+//
+//            (*ds.z)(idx) = (*ds.z)(idx) + precipc;
+//            (*ds.h)(idx) = (*ds.z)(idx)-(*ds.zb)(idx);
+//
+////            (*ds.h)(idx) = arma::max((*ds.z)(idx)-(*ds.zb)(idx),0.0);
+//
+//
+//        }
+
+
         // FLOW SOLVERS
-        if (hpall!=0) 
-        {
+        if (hpall != 0) {
             flow_solver(ds);
         }
-        
-        // PRINT RESULTS
-        if (ds.tim>=print_next)
-        {
-             write_results(ds,std::round(print_next));
-             print_next = print_next + print_step;
-         }
 
+        // PRINT RESULTS
+        if (ds.tim >= print_next) {
+            write_results(ds, std::round(print_next));
+            print_next = print_next + print_step;
+        }
+
+    }
+
+    //figure out which raster cells go with what triangle
+    for (size_t i = 0; i < domain->size_faces(); i++)
+    {
+        auto face = domain->face(i);
+        auto d = face->get_module_data<data>(ID);
+
+        if( d->rastercells.n_elem != 0)
+          (*face)["water_level"] = arma::mean((*ds.h).elem(d->rastercells));
     }
 
 }
 
 void fluxos::init(mesh& domain)
 {
-
-
-
     arma::mat filedata;
-    bool flstatus =  filedata.load( cfg.get("mesh","model_geo.txt"),arma::raw_ascii);
+    bool flstatus =  filedata.load( cfg.get("model_geo","model_geo.txt"),arma::raw_ascii);
 
     if(!flstatus) {
         BOOST_THROW_EXCEPTION(module_error() << errstr_info("problem with loading 'modelgeo.txt'"));
     }
+
+    filedata.replace(-9999.0,9999.0);
+
+
+
     size_t nxl = filedata.n_cols;
     size_t nyl = filedata.n_rows;
 
     LOG_DEBUG << "Read in structured mesh of size " + std::to_string(nxl) + " " + std::to_string(nyl);
 
-    flstatus = ds.tri_mapping->load( cfg.get("mesh","cellmapping.txt"),arma::raw_ascii);
+    tri_mapping = std::unique_ptr<arma::Mat<double>>( new  arma::mat);
+    flstatus = tri_mapping->load( cfg.get("cell_mapping","cellmapping.txt"),arma::raw_ascii);
     if(!flstatus)
     {
         BOOST_THROW_EXCEPTION(module_error() << errstr_info("problem with loading 'cellidmapping.txt'"));
     }
 
-    if(ds.tri_mapping->n_cols != filedata.n_cols ||
-        ds.tri_mapping->n_rows != filedata.n_rows)
+
+    LOG_DEBUG << "Read in cellid mapping of size " + std::to_string(nxl) + " " + std::to_string(nyl);
+
+    if(tri_mapping->n_cols != filedata.n_cols ||
+        tri_mapping->n_rows != filedata.n_rows)
     {
         BOOST_THROW_EXCEPTION(module_error() << errstr_info("Inconsistent dimensions in both structured meshes"));
+    }
+
+    if(tri_mapping->max() >domain->size_faces() )
+      BOOST_THROW_EXCEPTION(module_error() << errstr_info("Max mapping is out of bounds"));
+
+    //figure out which raster cells go with what triangle
+    for (size_t i = 0; i < domain->size_faces(); i++)
+    {
+        auto face = domain->face(i);
+        auto d = face->make_module_data<data>(ID);
+
+        d->rastercells = arma::find( *tri_mapping == face->cell_global_id );
+
+        if( d->rastercells.n_elem == 0)
+        {
+//          LOG_DEBUG << face->cell_global_id;
+//          LOG_DEBUG << i;
+//            BOOST_THROW_EXCEPTION(module_error() << errstr_info("Triangle does not map to any rasters"));
+        }
     }
 
     ds.mx = nxl+2;
     ds.my = nyl+2;
     size_t mx = ds.mx;
     size_t my = ds.my;
+
+    forcing = std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx-2,my-2));
 
     ds.z= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
     ds.zb= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
@@ -916,7 +1021,7 @@ void fluxos::init(mesh& domain)
     // input/read data
     ds.cfl = 1; // Courant condition
     ds.dxy = cfg.get("dxy",3); // grid size (structure grid) - it will actually come from DEM
-    ds.ntim = cfg.get("ntim",3000000);// maximum time step (seconds)
+//    ds.ntim = cfg.get("ntim",3000000);// maximum time step (seconds)
     //kapa = -2.    // /  -2=1.Ord ; -1=2.Ord   // KOMISCH, DASS REAL/INTEGER ->schauen bei Rolands Dateien
     ds.arbase = ds.dxy * ds.dxy;
     //betas = 2. // Chezy (parameter)
@@ -931,7 +1036,7 @@ void fluxos::init(mesh& domain)
     //comfirm these are deep copies and behave as expected
     (*ds.zb) = filedata;
     (*ds.ks) = 0.01;
-    unsigned int iy,ix,a;
+//    unsigned int iy,ix,a;
 //        for(a=0;a<filedata.col(1).n_elem;a++){
 //            ix = filedata(a,0);
 //            iy = filedata(a,1);

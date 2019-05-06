@@ -44,10 +44,16 @@ public:
     void run(mesh& domain);
     void init(mesh& domain);
 
+    std::unique_ptr<arma::Mat<double>> tri_mapping;
+    std::unique_ptr<arma::Mat<double>> forcing;
+    class data : public face_info {
+    public:
+        arma::uvec rastercells;
+    };
     struct declavar
     {
-        size_t nx,ny;
-        size_t mx,my,dxy,arbase,
+        unsigned int nx,ny;
+        unsigned int mx,my,dxy,arbase,
                 ntim;                                       // maximum time step (seconds)
         float gacc = 9.80665,                           // gravitational acceleration
                 cfl,                                        // Courant condition
@@ -60,10 +66,10 @@ public:
                 dh,dp ,dq,                                  // changes in h[ix][iy], p[ix][iy] and q[ix][iy]
         //sbmx,sbmy,                                  // for calc of weight of water (bed slope term) (solver_wet)
                 ks, //cfri                                  // Friction (Chezy model is not being used for now)
-                fe_1,fe_2,fe_3,fn_1,fn_2,fn_3, tri_mapping;
+                fe_1,fe_2,fe_3,fn_1,fn_2,fn_3;
         std::unique_ptr<arma::Mat<float>> ldry;
         double hdry,                                    //minimum water depth
-                dtfl,tim;                                   // timestep for flow computation
+                dtfl,tim;                                   // timestep for flow computation (s)
     } ds;
 
     size_t print_step;
