@@ -59,41 +59,6 @@ void fluxos::initiation(declavar& ds)
     (*ds.zb).at(0,ny1) = (*ds.zb).at(1,ds.ny);
     (*ds.zb).at(nx1,ny1) = (*ds.zb).at(ds.nx,ds.ny);
 
-    // INTERPOLATE CELL VERTICES TO CELL CENTER
-    for(iy=1;iy<=ds.ny;iy++){
-        zbsw = zbs1[1];
-        iy1  = iy+1;
-        zbnw = (*ds.zb).at(1,iy1);
-        zbs1[1]=zbnw;
-        for(ix=1;ix<=ds.nx;ix++){
-            ix1=ix+1;
-            zbse =zbs1[ix1];
-            zbne = (*ds.zb).at(ix1,iy1);
-            a = 0;
-            zbsum = 0;
-            if (zbsw != 9999){
-                zbsum=zbsum + zbsw;
-                a = a + 1;
-            }
-            if (zbse != 9999){
-                zbsum=zbsum + zbse;
-                a = a + 1;
-            }
-            if (zbnw != 9999){
-                zbsum=zbsum + zbnw;
-                a = a + 1;
-            }
-            if (zbne != 9999){
-                zbsum=zbsum + zbne;
-                a = a + 1;
-            }
-            (*ds.zb).at(ix,iy)=(zbsum)/a;
-            zbs1[ix1]=zbne;
-            zbsw= zbse;
-            zbnw= zbne;
-        }
-    }
-
     // INITIAL CONDITIONS
     for(iy=1;iy<=ds.ny;iy++)
     {
@@ -778,8 +743,8 @@ void fluxos::write_results(declavar& ds, int print_tag)
                 filedataR(a,3) = (*ds.z).at(ix,iy) - (*ds.zb).at(ix,iy);
                 filedataR(a,4) = (*ds.u).at(ix,iy); 
                 filedataR(a,5) = (*ds.v).at(ix,iy); 
-                filedataR(a,6) = (*ds.pj).at(ix,iy); 
-                filedataR(a,7) = (*ds.qj).at(ix,iy); 
+                filedataR(a,6) = (*ds.p).at(ix,iy)*ds.dxy;
+                filedataR(a,7) = (*ds.q).at(ix,iy)*ds.dxy;
                 filedataR(a,8) = ux; 
                 filedataR(a,9) = (*ds.us).at(ix,iy); 
                 a = a + 1;
