@@ -11,6 +11,7 @@ set(CMAKE_MACOSX_RPATH 1)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
 endif()
+set(CMAKE_FIND_FRAMEWORK NEVER)
 
 set(ext_cmakefile_name CMakeLists_external.txt.in)
 # Some machines require machine-specific work arounds when building the external libraries. Special casing to a per-machine basis should not be done often
@@ -179,7 +180,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
         -DBUILD_NETCDF=${BUILD_NETCDF}
         -DBUILD_TBB=${BUILD_TBB}
         -DBUILD_ParaView=${BUILD_ParaView}
-	-DEXTERNAL_BUILD_THREADS=${EXTERNAL_BUILD_THREADS}
+	    -DEXTERNAL_BUILD_THREADS=${EXTERNAL_BUILD_THREADS}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DUSE_MPI=${USE_MPI}
         -DMPI_FOUND=${MPI_FOUND}
