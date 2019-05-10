@@ -47,27 +47,27 @@ void fluxos::initiation(declavar& ds)
 
     // INTERPOLATE ELEVATIONS OF THE BOUNDARIES
     for(ix=0;ix<=nx1;ix++){
-        zbs1[ix]=(*ds.zb).at(ix,1);
-        (*ds.zb).at(ix,0) = (*ds.zb).at(ix,1);
-        (*ds.zb).at(ix,ny1) = (*ds.zb).at(ix,ds.ny);
+        zbs1[ix]=(*ds.zb).at(1,ix);
+        (*ds.zb).at(0,ix) = (*ds.zb).at(1,ix);
+        (*ds.zb).at(ny1,ix) = (*ds.zb).at(ds.ny,ix);
     }
     for(iy=0;iy<=ny1;iy++){
-        (*ds.zb).at(0,iy) = (*ds.zb).at(1,iy);
-        (*ds.zb).at(nx1,iy) = (*ds.zb).at(ds.nx,iy);
+        (*ds.zb).at(iy,0) = (*ds.zb).at(iy,1);
+        (*ds.zb).at(iy,nx1) = (*ds.zb).at(iy,ds.nx);
     }
 
-    (*ds.zb).at(0,ny1) = (*ds.zb).at(1,ds.ny);
-    (*ds.zb).at(nx1,ny1) = (*ds.zb).at(ds.nx,ds.ny);
+    (*ds.zb).at(ny1,0) = (*ds.zb).at(ds.ny,1);
+    (*ds.zb).at(ny1,nx1) = (*ds.zb).at(ds.ny,ds.nx);
 
     // INITIAL CONDITIONS
     for(iy=1;iy<=ds.ny;iy++)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {
-            (*ds.h).at(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
-            (*ds.z).at(ix,iy)=(*ds.zb).at(ix,iy)+(*ds.h).at(ix,iy);
-            (*ds.p).at(ix,iy)=(*ds.u).at(ix,iy)*(*ds.h).at(ix,iy);
-            (*ds.q).at(ix,iy)=(*ds.v).at(ix,iy)*(*ds.h).at(ix,iy);
+            (*ds.h).at(iy,ix)=std::max((*ds.z).at(iy,ix)-(*ds.zb).at(iy,ix),0.0);
+            (*ds.z).at(iy,ix)=(*ds.zb).at(iy,ix)+(*ds.h).at(iy,ix);
+            (*ds.p).at(iy,ix)=(*ds.u).at(iy,ix)*(*ds.h).at(iy,ix);
+            (*ds.q).at(iy,ix)=(*ds.v).at(iy,ix)*(*ds.h).at(iy,ix);
         }
     }
 
@@ -80,14 +80,14 @@ void fluxos::initiation(declavar& ds)
         {
             ix = filedata(a,0);
             iy = filedata(a,1);
-            (*ds.h).at(ix,iy) = filedata(a,3);
-            (*ds.z).at(ix,iy) = (*ds.zb).at(ix,iy) + filedata(a,3);
-            (*ds.u).at(ix,iy) = filedata(a,4);
-            (*ds.v).at(ix,iy) = filedata(a,5);
-            (*ds.p).at(ix,iy) = filedata(a,6);
-            (*ds.q).at(ix,iy) = filedata(a,7);
-            (*ds.us).at(ix,iy) = filedata(a,9);
-            (*ds.ldry).at(ix,iy) = 0.0f;
+            (*ds.h).at(iy,ix) = filedata(a,3);
+            (*ds.z).at(iy,ix) = (*ds.zb).at(iy,ix) + filedata(a,3);
+            (*ds.u).at(iy,ix) = filedata(a,4);
+            (*ds.v).at(iy,ix) = filedata(a,5);
+            (*ds.p).at(iy,ix) = filedata(a,6);
+            (*ds.q).at(iy,ix) = filedata(a,7);
+            (*ds.us).at(iy,ix) = filedata(a,9);
+            (*ds.ldry).at(iy,ix) = 0.0f;
         }
     } else
     {
@@ -96,14 +96,14 @@ void fluxos::initiation(declavar& ds)
         {
             for(ix=1;ix<=ds.nx;ix++)
             {
-                (*ds.h).at(ix,iy) = 0.0f;
-                (*ds.z).at(ix,iy) = (*ds.zb).at(ix,iy);
-                (*ds.u).at(ix,iy) = 0.0f;
-                (*ds.v).at(ix,iy) = 0.0f;
-                (*ds.p).at(ix,iy) = 0.0f;
-                (*ds.q).at(ix,iy) = 0.0f;
-                (*ds.us).at(ix,iy) = 0.0f;
-                (*ds.ldry).at(ix,iy) = 1.0f;
+                (*ds.h).at(iy,ix) = 0.0f;
+                (*ds.z).at(iy,ix) = (*ds.zb).at(iy,ix);
+                (*ds.u).at(iy,ix) = 0.0f;
+                (*ds.v).at(iy,ix) = 0.0f;
+                (*ds.p).at(iy,ix) = 0.0f;
+                (*ds.q).at(iy,ix) = 0.0f;
+                (*ds.us).at(iy,ix) = 0.0f;
+                (*ds.ldry).at(iy,ix) = 1.0f;
             }
         }
     }
@@ -111,27 +111,27 @@ void fluxos::initiation(declavar& ds)
     // BOUNDARY VALUES (initial set up)
     for(iy=0;iy<=ny1;iy++)
     {
-        (*ds.zb).at(0,iy)=1.5*(*ds.zb).at(1,iy)-.5*(*ds.zb).at(2,iy);
-        (*ds.zb).at(nx1,iy)=1.5*(*ds.zb).at(ds.nx,iy)-.5*(*ds.zb).at(ds.nx-1,iy);
-        (*ds.z).at(0,iy)=1.5*(*ds.z).at(1,iy)-.5*(*ds.z).at(2,iy);
-        (*ds.z).at(nx1,iy)=1.5*(*ds.z).at(ds.nx,iy)-.5*(*ds.z).at(ds.nx-1,iy);
-        (*ds.h).at(0,iy)=std::max(0.0,(*ds.z).at(0,iy)-(*ds.zb).at(0,iy));
-        (*ds.h).at(nx1,iy)=std::max(0.0,(*ds.z).at(nx1,iy)-(*ds.zb).at(nx1,iy));
-        (*ds.p).at(0,iy)=0.0f;
-        (*ds.q).at(nx1,iy)=0.0f;
-        (*ds.pj).at(0,iy)=0.0f;
+        (*ds.zb).at(iy,0)=1.5*(*ds.zb).at(iy,1)-.5*(*ds.zb).at(iy,2);
+        (*ds.zb).at(iy,nx1)=1.5*(*ds.zb).at(iy,ds.nx)-.5*(*ds.zb).at(iy,ds.nx-1);
+        (*ds.z).at(iy,0)=1.5*(*ds.z).at(iy,1)-.5*(*ds.z).at(iy,2);
+        (*ds.z).at(iy,nx1)=1.5*(*ds.z).at(iy,ds.nx)-.5*(*ds.z).at(iy,ds.nx-1);
+        (*ds.h).at(iy,0)=std::max(0.0,(*ds.z).at(iy,0)-(*ds.zb).at(iy,0));
+        (*ds.h).at(iy,nx1)=std::max(0.0,(*ds.z).at(iy,nx1)-(*ds.zb).at(iy,nx1));
+        (*ds.p).at(iy,0)=0.0f;
+        (*ds.q).at(iy,nx1)=0.0f;
+        (*ds.pj).at(iy,0)=0.0f;
     }
     for(ix=0;ix<=nx1;ix++)
     {
-        (*ds.zb).at(ix,0)=1.5*(*ds.zb).at(ix,1)-.5*(*ds.zb).at(ix,2);
-        (*ds.zb).at(ix,ny1)=1.5*(*ds.zb).at(ix,ds.ny)-.5*(*ds.zb).at(ix,ds.ny-1);
-        (*ds.z).at(ix,0)=1.5*(*ds.z).at(ix,1)-.5*(*ds.z).at(ix,2);
-        (*ds.z).at(ix,ny1)=1.5*(*ds.z).at(ix,ds.ny)-.5*(*ds.z).at(ix,ds.ny-1);
-        (*ds.h).at(ix,0)=std::max(0.0,(*ds.z).at(ix,0)-(*ds.zb).at(ix,0));
-        (*ds.h).at(ix,ny1)=std::max(0.0,(*ds.z).at(ix,ny1)-(*ds.zb).at(ix,ny1));
-        (*ds.p).at(ix,0)=0.0f;
-        (*ds.q).at(ix,ny1)=0.0f;
-        (*ds.qj).at(ix,0)=0.0f;
+        (*ds.zb).at(0,ix)=1.5*(*ds.zb).at(1,ix)-.5*(*ds.zb).at(2,ix);
+        (*ds.zb).at(ny1,ix)=1.5*(*ds.zb).at(ds.ny,ix)-.5*(*ds.zb).at(ds.ny-1,ix);
+        (*ds.z).at(0,ix)=1.5*(*ds.z).at(1,ix)-.5*(*ds.z).at(2,ix);
+        (*ds.z).at(ny1,ix)=1.5*(*ds.z).at(ds.ny,ix)-.5*(*ds.z).at(ds.ny-1,ix);
+        (*ds.h).at(0,ix)=std::max(0.0,(*ds.z).at(0,ix)-(*ds.zb).at(0,ix));
+        (*ds.h).at(ny1,ix)=std::max(0.0,(*ds.z).at(ny1,ix)-(*ds.zb).at(ny1,ix));
+        (*ds.p).at(0,ix)=0.0f;
+        (*ds.q).at(ny1,ix)=0.0f;
+        (*ds.qj).at(0,ix)=0.0f;
     }
 }
 
@@ -155,11 +155,11 @@ void fluxos::solver_dry(declavar& ds, unsigned int ix, unsigned int iy)
     iw=ix-1;
     ie=ix+1;
     
-    ldw = (*ds.ldry).at(iw,iy);
-    ldp = (*ds.ldry).at(ix,iy);
-    lde = (*ds.ldry).at(ie,iy);
-    lds = (*ds.ldry).at(ix,is);
-    ldn = (*ds.ldry).at(ix,in);
+    ldw = (*ds.ldry).at(iy,iw);
+    ldp = (*ds.ldry).at(iy,ix);
+    lde = (*ds.ldry).at(iy,ie);
+    lds = (*ds.ldry).at(is,ix);
+    ldn = (*ds.ldry).at(in,ix);
     
     gaccl = ds.gacc;
     nyl = ds.ny;
@@ -174,30 +174,30 @@ void fluxos::solver_dry(declavar& ds, unsigned int ix, unsigned int iy)
         fn1=0.0f;
         fn2=0.0f;
         fn3=0.0f;
-        (*ds.dh).at(ix,iy)=0.0f;
-        (*ds.dp).at(ix,iy)=0.0f;
-        (*ds.dq).at(ix,iy)=0.0f;
-        (*ds.pj).at(ix,iy)=0.0f;
-        (*ds.qj).at(ix,iy)=0.0f;
-    (*ds.p).at(ix,iy)=0.0f;
-        (*ds.q).at(ix,iy)=0.0f;   
+        (*ds.dh).at(iy,ix)=0.0f;
+        (*ds.dp).at(iy,ix)=0.0f;
+        (*ds.dq).at(iy,ix)=0.0f;
+        (*ds.pj).at(iy,ix)=0.0f;
+        (*ds.qj).at(iy,ix)=0.0f;
+    (*ds.p).at(iy,ix)=0.0f;
+        (*ds.q).at(iy,ix)=0.0f;   
         return;
     }
     
     // CELL CENTER VALUES
-    zbp = (*ds.zb).at(ix,iy);
-    zbe = (*ds.zb).at(ie,iy);
-    zbn = (*ds.zb).at(ix,in);
-    zp=(*ds.z).at(ix,iy);
-    ze=(*ds.z).at(ie,iy);
-    zn=(*ds.z).at(ix,in);
-    hp  = std::max(0.0,(*ds.z).at(ix,iy)-(*ds.z).at(ix,iy));
+    zbp = (*ds.zb).at(iy,ix);
+    zbe = (*ds.zb).at(iy,ie);
+    zbn = (*ds.zb).at(in,ix);
+    zp=(*ds.z).at(iy,ix);
+    ze=(*ds.z).at(iy,ie);
+    zn=(*ds.z).at(in,ix);
+    hp  = std::max(0.0,(*ds.z).at(iy,ix)-(*ds.z).at(iy,ix));
     he=std::max(0.0,ze-zbe);
     hn=std::max(0.0,zn-zbn);
-    qp=(*ds.p).at(ix,iy);
-    qe=(*ds.p).at(ie,iy);
-    rp=(*ds.q).at(ix,iy);
-    rn=(*ds.q).at(ix,in);
+    qp=(*ds.p).at(iy,ix);
+    qe=(*ds.p).at(iy,ie);
+    rp=(*ds.q).at(iy,ix);
+    rn=(*ds.q).at(in,ix);
        
     // CELL FACE VALUES  
     zbpe=.5*(zbe+zbp);
@@ -293,12 +293,12 @@ void fluxos::solver_dry(declavar& ds, unsigned int ix, unsigned int iy)
     }
     
     // SAVE MASS AND MOMENTUM FLUXES
-    (*ds.fn_1).at(ix,iy)=fn1;
-    (*ds.fn_2).at(ix,iy)=fn2;
-    (*ds.fn_3).at(ix,iy)=fn3;
-    (*ds.fe_1).at(ix,iy)=fe1;
-    (*ds.fe_2).at(ix,iy)=fe2;
-    (*ds.fe_3).at(ix,iy)=fe3;   
+    (*ds.fn_1).at(iy,ix)=fn1;
+    (*ds.fn_2).at(iy,ix)=fn2;
+    (*ds.fn_3).at(iy,ix)=fn3;
+    (*ds.fe_1).at(iy,ix)=fe1;
+    (*ds.fe_2).at(iy,ix)=fe2;
+    (*ds.fe_3).at(iy,ix)=fe3;   
 } 
 
 void fluxos::solver_wet(declavar& ds, unsigned int ix, unsigned int iy)
@@ -323,7 +323,7 @@ void fluxos::solver_wet(declavar& ds, unsigned int ix, unsigned int iy)
     nyl = ds.ny;
     hdryl = ds.hdry;
     gaccl = ds.gacc;
-    kspl = (*ds.ks).at(ix,iy);
+    kspl = (*ds.ks).at(iy,ix);
     nueml = ds.nuem;
     cvdefl = ds.cvdef;
     
@@ -337,36 +337,36 @@ void fluxos::solver_wet(declavar& ds, unsigned int ix, unsigned int iy)
     dx  = ds.dxy;
     dy  = ds.dxy;
     
-    ldp = (*ds.ldry).at(ix,iy);
-    lde = (*ds.ldry).at(ie,iy);
-    ldn = (*ds.ldry).at(ix,in);
+    ldp = (*ds.ldry).at(iy,ix);
+    lde = (*ds.ldry).at(iy,ie);
+    ldn = (*ds.ldry).at(in,ix);
 
     // CELL CENTER VALUES
-    zbw = (*ds.zb).at(iw,iy);
-    zbp = (*ds.zb).at(ix,iy);
-    zbe = (*ds.zb).at(ie,iy);
-    zbs = (*ds.zb).at(ix,is);
-    zbn = (*ds.zb).at(ix,in);
-    zbnn= (*ds.zb).at(ix,inn);
-    zw=(*ds.z).at(iw,iy);
-    zp=(*ds.z).at(ix,iy);
-    ze=(*ds.z).at(ie,iy);
-    zs=(*ds.z).at(ix,is);
-    zn=(*ds.z).at(ix,in);
-    znn=(*ds.z).at(ix,inn);
-    qp=(*ds.p).at(ix,iy);
-    qe=(*ds.p).at(ie,iy);
-    qn=(*ds.p).at(ix,in);
-    rw=(*ds.q).at(iw,iy);
-    rp=(*ds.q).at(ix,iy);
-    re=(*ds.q).at(ie,iy);
-    rn=(*ds.q).at(ix,in);
+    zbw = (*ds.zb).at(iy,iw);
+    zbp = (*ds.zb).at(iy,ix);
+    zbe = (*ds.zb).at(iy,ie);
+    zbs = (*ds.zb).at(is,ix);
+    zbn = (*ds.zb).at(in,ix);
+    zbnn= (*ds.zb).at(inn,ix);
+    zw=(*ds.z).at(iy,iw);
+    zp=(*ds.z).at(iy,ix);
+    ze=(*ds.z).at(iy,ie);
+    zs=(*ds.z).at(is,ix);
+    zn=(*ds.z).at(in,ix);
+    znn=(*ds.z).at(inn,ix);
+    qp=(*ds.p).at(iy,ix);
+    qe=(*ds.p).at(iy,ie);
+    qn=(*ds.p).at(in,ix);
+    rw=(*ds.q).at(iy,iw);
+    rp=(*ds.q).at(iy,ix);
+    re=(*ds.q).at(iy,ie);
+    rn=(*ds.q).at(in,ix);
 
     // zbpw=.5*(zbw+zbp);
     zbpe=.5*(zbe+zbp);
     // zbps=.5*(zbs+zbp);
     zbpn=.5*(zbn+zbp);
-    hp  = std::max(0.0,(*ds.z).at(ix,iy)-zbp);
+    hp  = std::max(0.0,(*ds.z).at(iy,ix)-zbp);
     hp0 = std::max(std::max(hdryl,hp),kspl);
     hw=std::max(0.0,zw-zbw);
     he=std::max(0.0,ze-zbe);
@@ -457,22 +457,22 @@ void fluxos::solver_wet(declavar& ds, unsigned int ix, unsigned int iy)
     umn=qmn/std::max(hmn,hdryl);
     vmn=rmn/std::max(hmn,hdryl);
     
-    cnp=cvdefl*(*ds.us).at(ix,iy)*hp+nueml;
-    cne=cvdefl*(*ds.us).at(ie,iy)*he+nueml;
-    cnn=cvdefl*(*ds.us).at(ix,in)*hn+nueml;
+    cnp=cvdefl*(*ds.us).at(iy,ix)*hp+nueml;
+    cne=cvdefl*(*ds.us).at(iy,ie)*he+nueml;
+    cnn=cvdefl*(*ds.us).at(in,ix)*hn+nueml;
     hne=.5*(cnp+cne)*sqrt(hp*he);
     hnn=.5*(cnp+cnn)*sqrt(hp*hn);
 
     up=qp/hp0;
-    un=qn/std::max(std::max(hn,hdryl),(*ds.ks).at(ix,in));
-    us0=(*ds.p).at(ix,is)/std::max(std::max(hs,hdryl),(*ds.ks).at(ix,is));
-    use0=(*ds.p).at(ie,is)/std::max(std::max((*ds.h).at(ie,is),hdryl),(*ds.ks).at(ie,is));
-    une=(*ds.p).at(ie,in)/std::max(std::max((*ds.h).at(ie,in),hdryl),(*ds.ks).at(ie,in));
+    un=qn/std::max(std::max(hn,hdryl),(*ds.ks).at(in,ix));
+    us0=(*ds.p).at(is,ix)/std::max(std::max(hs,hdryl),(*ds.ks).at(is,ix));
+    use0=(*ds.p).at(is,ie)/std::max(std::max((*ds.h).at(is,ie),hdryl),(*ds.ks).at(is,ie));
+    une=(*ds.p).at(in,ie)/std::max(std::max((*ds.h).at(in,ie),hdryl),(*ds.ks).at(in,ie));
     vp=rp/hp0;
-    ve=re/std::max(std::max(he,hdryl),(*ds.ks).at(ie,iy));
-    vw=rw/std::max(std::max(hw,hdryl),(*ds.ks).at(iw,iy));
-    vwn=(*ds.q).at(iw,in)/std::max(std::max((*ds.h).at(iw,in),hdryl),(*ds.ks).at(iw,in));
-    ven=(*ds.q).at(ie,in)/std::max(std::max((*ds.h).at(ie,in),hdryl),(*ds.ks).at(ie,in));
+    ve=re/std::max(std::max(he,hdryl),(*ds.ks).at(iy,ie));
+    vw=rw/std::max(std::max(hw,hdryl),(*ds.ks).at(iy,iw));
+    vwn=(*ds.q).at(in,iw)/std::max(std::max((*ds.h).at(in,iw),hdryl),(*ds.ks).at(in,iw));
+    ven=(*ds.q).at(in,ie)/std::max(std::max((*ds.h).at(in,ie),hdryl),(*ds.ks).at(in,ie));
 
     txye=hne*((ve-vp)/fabs(dx)+.25*(un+une-us0-use0)/dy);
     txyn=hnn*((un-up)/fabs(dy)+.25*(ve+ven-vw-vwn)/dx);
@@ -607,12 +607,12 @@ void fluxos::solver_wet(declavar& ds, unsigned int ix, unsigned int iy)
     }
 
     // SAVE MASS AND MOMENTUM FLUXES
-    (*ds.fn_1).at(ix,iy)=fn1;
-    (*ds.fn_2).at(ix,iy)=fn2;
-    (*ds.fn_3).at(ix,iy)=fn3;
-    (*ds.fe_1).at(ix,iy)=fe1;
-    (*ds.fe_2).at(ix,iy)=fe2;
-    (*ds.fe_3).at(ix,iy)=fe3;
+    (*ds.fn_1).at(iy,ix)=fn1;
+    (*ds.fn_2).at(iy,ix)=fn2;
+    (*ds.fn_3).at(iy,ix)=fn3;
+    (*ds.fe_1).at(iy,ix)=fe1;
+    (*ds.fe_2).at(iy,ix)=fe2;
+    (*ds.fe_3).at(iy,ix)=fe3;
     
 } 
 
@@ -641,18 +641,18 @@ void fluxos::flow_solver(declavar& ds)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {  
-            hp=std::max(0.0,(*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy));
-            (*ds.h).at(ix,iy) = hp;
+            hp=std::max(0.0,(*ds.z).at(iy,ix)-(*ds.zb).at(iy,ix));
+            (*ds.h).at(iy,ix) = hp;
             
             if(hp<=ds.hdry)
             {
-              (*ds.p).at(ix,iy)=0.0f;
-              (*ds.q).at(ix,iy)=0.0f;
-              (*ds.us).at(ix,iy)=0.0f;
-              (*ds.ldry).at(ix,iy) = 1.0f;;          
+              (*ds.p).at(iy,ix)=0.0f;
+              (*ds.q).at(iy,ix)=0.0f;
+              (*ds.us).at(iy,ix)=0.0f;
+              (*ds.ldry).at(iy,ix) = 1.0f;;          
             } else
             {
-              (*ds.ldry).at(ix,iy) = 0.0f;         
+              (*ds.ldry).at(iy,ix) = 0.0f;         
             }
         }
     }
@@ -665,7 +665,7 @@ void fluxos::flow_solver(declavar& ds)
         {
             for(ix=1;ix<=ds.nx;ix++)
             {  
-                if((*ds.ldry).at(ix,iy) == 1.0f)
+                if((*ds.ldry).at(iy,ix) == 1.0f)
                 {
                     solver_dry(ds,ix,iy);
                 } else
@@ -681,11 +681,11 @@ void fluxos::flow_solver(declavar& ds)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {  
-            (*ds.dh).at(ix,iy)=(((*ds.fe_1).at(ix-1,iy)-(*ds.fe_1).at(ix,iy))/ds.dxy +((*ds.fn_1).at(ix,iy-1)-(*ds.fn_1).at(ix,iy))/ds.dxy)*dtl;
-            (*ds.dp).at(ix,iy)=(((*ds.fe_2).at(ix-1,iy)-(*ds.fe_2).at(ix,iy))/ds.dxy +((*ds.fn_2).at(ix,iy-1)-(*ds.fn_2).at(ix,iy))/ds.dxy)*dtl;
-            (*ds.dq).at(ix,iy)=(((*ds.fe_3).at(ix-1,iy)-(*ds.fe_3).at(ix,iy))/ds.dxy +((*ds.fn_3).at(ix,iy-1)-(*ds.fn_3).at(ix,iy))/ds.dxy)*dtl;
-            (*ds.pj).at(ix,iy)=(*ds.fe_1).at(ix,iy)*dtl;
-            (*ds.qj).at(ix,iy)=(*ds.fn_1).at(ix,iy)*dtl;
+            (*ds.dh).at(iy,ix)=(((*ds.fe_1).at(iy,ix-1)-(*ds.fe_1).at(iy,ix))/ds.dxy +((*ds.fn_1).at(iy-1,ix)-(*ds.fn_1).at(iy,ix))/ds.dxy)*dtl;
+            (*ds.dp).at(iy,ix)=(((*ds.fe_2).at(iy,ix-1)-(*ds.fe_2).at(iy,ix))/ds.dxy +((*ds.fn_2).at(iy-1,ix)-(*ds.fn_2).at(iy,ix))/ds.dxy)*dtl;
+            (*ds.dq).at(iy,ix)=(((*ds.fe_3).at(iy,ix-1)-(*ds.fe_3).at(iy,ix))/ds.dxy +((*ds.fn_3).at(iy-1,ix)-(*ds.fn_3).at(iy,ix))/ds.dxy)*dtl;
+            (*ds.pj).at(iy,ix)=(*ds.fe_1).at(iy,ix)*dtl;
+            (*ds.qj).at(iy,ix)=(*ds.fn_1).at(iy,ix)*dtl;
         }
     }
 
@@ -694,23 +694,23 @@ void fluxos::flow_solver(declavar& ds)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {  
-            (*ds.z).at(ix,iy)=(*ds.z).at(ix,iy)+(*ds.dh).at(ix,iy);
-            hp=std::max(0.0,(*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy));
-            (*ds.h).at(ix,iy)=hp;
+            (*ds.z).at(iy,ix)=(*ds.z).at(iy,ix)+(*ds.dh).at(iy,ix);
+            hp=std::max(0.0,(*ds.z).at(iy,ix)-(*ds.zb).at(iy,ix));
+            (*ds.h).at(iy,ix)=hp;
             
             if(hp<ds.hdry) 
             {
-                (*ds.p).at(ix,iy)= 0.0f;
-                (*ds.q).at(ix,iy)= 0.0f;
-                (*ds.us).at(ix,iy)= 0.0f;
-                (*ds.ldry).at(ix,iy) = 1.0f;
+                (*ds.p).at(iy,ix)= 0.0f;
+                (*ds.q).at(iy,ix)= 0.0f;
+                (*ds.us).at(iy,ix)= 0.0f;
+                (*ds.ldry).at(iy,ix) = 1.0f;
             } else 
             {
-                (*ds.p).at(ix,iy)=(*ds.p).at(ix,iy)+(*ds.dp).at(ix,iy);  // numerical flux at cell center
-                (*ds.q).at(ix,iy)=(*ds.q).at(ix,iy)+(*ds.dq).at(ix,iy);  // numerical flux at cell center
-                (*ds.p).at(ix,iy)=.1*(*ds.pj).at(ix-1,iy)+.8*(*ds.p).at(ix,iy)+.1*(*ds.pj).at(ix,iy); 
-                (*ds.q).at(ix,iy)=.1*(*ds.qj).at(ix,iy-1)+.8*(*ds.q).at(ix,iy)+.1*(*ds.qj).at(ix,iy);
-                (*ds.ldry).at(ix,iy) = 0.0f;          
+                (*ds.p).at(iy,ix)=(*ds.p).at(iy,ix)+(*ds.dp).at(iy,ix);  // numerical flux at cell center
+                (*ds.q).at(iy,ix)=(*ds.q).at(iy,ix)+(*ds.dq).at(iy,ix);  // numerical flux at cell center
+                (*ds.p).at(iy,ix)=.1*(*ds.pj).at(iy,ix-1)+.8*(*ds.p).at(iy,ix)+.1*(*ds.pj).at(iy,ix); 
+                (*ds.q).at(iy,ix)=.1*(*ds.qj).at(iy-1,ix)+.8*(*ds.q).at(iy,ix)+.1*(*ds.qj).at(iy,ix);
+                (*ds.ldry).at(iy,ix) = 0.0f;          
             }  
         }
     } 
@@ -733,20 +733,20 @@ void fluxos::write_results(declavar& ds, int print_tag)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {
-            if ((*ds.h).at(ix,iy)>0.0f)
+            if ((*ds.h).at(iy,ix)>0.0f)
             {
-                ux=sqrt((*ds.u).at(ix,iy) * (*ds.u).at(ix,iy) +
-                        (*ds.v).at(ix,iy) * (*ds.v).at(ix,iy));
+                ux=sqrt((*ds.u).at(iy,ix) * (*ds.u).at(iy,ix) +
+                        (*ds.v).at(iy,ix) * (*ds.v).at(iy,ix));
                 filedataR(a,0) = ix;  
                 filedataR(a,1) = iy; 
-                filedataR(a,2) = (*ds.z).at(ix,iy); 
-                filedataR(a,3) = (*ds.z).at(ix,iy) - (*ds.zb).at(ix,iy);
-                filedataR(a,4) = (*ds.u).at(ix,iy); 
-                filedataR(a,5) = (*ds.v).at(ix,iy); 
-                filedataR(a,6) = (*ds.p).at(ix,iy)*ds.dxy;
-                filedataR(a,7) = (*ds.q).at(ix,iy)*ds.dxy;
+                filedataR(a,2) = (*ds.z).at(iy,ix); 
+                filedataR(a,3) = (*ds.z).at(iy,ix) - (*ds.zb).at(iy,ix);
+                filedataR(a,4) = (*ds.u).at(iy,ix); 
+                filedataR(a,5) = (*ds.v).at(iy,ix); 
+                filedataR(a,6) = (*ds.p).at(iy,ix)*ds.dxy;
+                filedataR(a,7) = (*ds.q).at(iy,ix)*ds.dxy;
                 filedataR(a,8) = ux; 
-                filedataR(a,9) = (*ds.us).at(ix,iy); 
+                filedataR(a,9) = (*ds.us).at(iy,ix); 
                 a = a + 1;
             }
         }
@@ -807,18 +807,18 @@ void fluxos::run(mesh& domain) {
         // SPACE LOOP
         for (iy = 1; iy <= ds.ny; iy++) {
             for (ix = 1; ix <= ds.nx; ix++) {
-                hp = (*ds.h).at(ix, iy);
+                hp = (*ds.h).at( iy,ix);
                 if (hp > ds.hdry) {
-                    (*ds.ldry).at(ix, iy) = 0.0f;
-                    hp = std::fmax((*ds.h).at(ix, iy), ds.hdry);
-                    hpall = std::fmax(hpall, (*ds.h).at(ix, iy));
-                    c0 = sqrt(ds.gacc * (*ds.h).at(ix, iy));
-                    u0 = std::fmax(.000001, fabs((*ds.p).at(ix, iy) / hp));
-                    v0 = std::fmax(.000001, fabs((*ds.q).at(ix, iy) / hp));
+                    (*ds.ldry).at( iy,ix) = 0.0f;
+                    hp = std::fmax((*ds.h).at( iy,ix), ds.hdry);
+                    hpall = std::fmax(hpall, (*ds.h).at( iy,ix));
+                    c0 = sqrt(ds.gacc * (*ds.h).at( iy,ix));
+                    u0 = std::fmax(.000001, fabs((*ds.p).at( iy,ix) / hp));
+                    v0 = std::fmax(.000001, fabs((*ds.q).at( iy,ix) / hp));
                     ds.dtfl = fmin(fmin(ds.cfl * ds.dxy / (u0 + c0), ds.cfl * ds.dxy / (v0 + c0)), ds.dtfl);
 
                 } else {
-                    (*ds.ldry).at(ix, iy) = 1.0f;
+                    (*ds.ldry).at( iy,ix) = 1.0f;
                 }
                 ds.dtfl = fmin(print_next - ds.tim, ds.dtfl);
             }
@@ -834,9 +834,9 @@ void fluxos::run(mesh& domain) {
 
         for (iy = 1; iy <= ds.ny; iy++) {
             for (ix = 1; ix <= ds.nx; ix++) {
-                if ((*ds.zb).at(ix,iy)!=9999){
-                    (*ds.z).at(ix,iy) = (*ds.z).at(ix,iy) + forcing->operator()(ix-1,iy-1)*ds.dtfl;
-                    (*ds.h).at(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
+                if ((*ds.zb).at(iy,ix)!=9999){
+                    (*ds.z).at(iy,ix) = (*ds.z).at(iy,ix) + forcing->operator()(iy-1,ix-1)*ds.dtfl;
+                    (*ds.h).at(iy,ix)=std::max((*ds.z).at(iy,ix)-(*ds.zb).at(iy,ix),0.0);
                 }
             }
         }
@@ -996,8 +996,8 @@ void fluxos::init(mesh& domain)
 //        for(a=0;a<filedata.col(1).n_elem;a++){
 //            ix = filedata(a,0);
 //            iy = filedata(a,1);
-//            (*ds.zb).at(ix,iy) = filedata(a,2);
-//            (*ds.ks).at(ix,iy) = filedata(a,3);
+//            (*ds.zb).at(iy,ix) = filedata(a,2);
+//            (*ds.ks).at(iy,ix) = filedata(a,3);
 //        }
 
     initiation(ds);
