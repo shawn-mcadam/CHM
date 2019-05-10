@@ -44,16 +44,17 @@ public:
     void run(mesh& domain);
     void init(mesh& domain);
 
-    std::unique_ptr<arma::Mat<double>> tri_mapping;
+
     std::unique_ptr<arma::Mat<double>> forcing;
+    std::unique_ptr<arma::Mat<double>> mapping;
     class data : public face_info {
     public:
-        arma::uvec rastercells;
+       arma::uvec rastercells;
     };
     struct declavar
     {
-        unsigned int nx,ny;
-        unsigned int mx,my,dxy,arbase,
+        int nx,ny;
+        int mx,my,dxy,arbase,
                 ntim;                                       // maximum time step (seconds)
         float gacc = 9.80665,                           // gravitational acceleration
                 cfl,                                        // Courant condition

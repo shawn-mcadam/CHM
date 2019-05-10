@@ -793,17 +793,10 @@ void fluxos::run(mesh& domain) {
 
         auto d = face->get_module_data<data>(ID);
         auto& idx = d->rastercells;
-        if( d->rastercells.n_elem != 0)
-          forcing->elem(idx) = arma::ones<arma::vec>(idx.n_elem)*precip;
 
-//        (*ds.z)(idx) = (*ds.z)(idx) + precip*ds.dtfl;
-//        (*ds.h)(idx) = (*ds.z)(idx)-(*ds.zb)(idx);
-
-//            (*ds.h)(idx) = arma::max((*ds.z)(idx)-(*ds.zb)(idx),0.0);
-
+        (*forcing)(idx).fill(precip);
 
     }
-
 
     // TIME LOOP
     while (ds.tim <= ds.ntim)
@@ -842,32 +835,11 @@ void fluxos::run(mesh& domain) {
         for (iy = 1; iy <= ds.ny; iy++) {
             for (ix = 1; ix <= ds.nx; ix++) {
                 if ((*ds.zb).at(ix,iy)!=9999){
-                    (*ds.z).at(ix,iy) = (*ds.z).at(ix,iy) + forcing->at(ix,iy)*ds.dtfl;
+                    (*ds.z).at(ix,iy) = (*ds.z).at(ix,iy) + forcing->operator()(ix-1,iy-1)*ds.dtfl;
                     (*ds.h).at(ix,iy)=std::max((*ds.z).at(ix,iy)-(*ds.zb).at(ix,iy),0.0);
                 }
             }
         }
-
-
-//        //figure out which raster cells go with what triangle
-//        for (size_t i = 0; i < domain->size_faces(); i++)
-//        {
-//            auto face = domain->face(i);
-//            double precip = (*face)["p"]/1000./global_param->dt();
-//
-//            auto d = face->get_module_data<data>(ID);
-//            auto& idx = d->rastercells;
-//
-//
-//
-//            (*ds.z)(idx) = (*ds.z)(idx) + precipc;
-//            (*ds.h)(idx) = (*ds.z)(idx)-(*ds.zb)(idx);
-//
-////            (*ds.h)(idx) = arma::max((*ds.z)(idx)-(*ds.zb)(idx),0.0);
-//
-//
-//        }
-
 
         // FLOW SOLVERS
         if (hpall != 0) {
@@ -878,11 +850,14 @@ void fluxos::run(mesh& domain) {
         if (ds.tim >= print_next) {
             write_results(ds, std::round(print_next));
             print_next = print_next + print_step;
+
+          (*ds.h).save("h.asc",arma::raw_ascii);
+          (*forcing).save("forcing.asc",arma::raw_ascii);
         }
 
     }
 
-    //figure out which raster cells go with what triangle
+
     for (size_t i = 0; i < domain->size_faces(); i++)
     {
         auto face = domain->face(i);
@@ -903,89 +878,105 @@ void fluxos::init(mesh& domain)
         BOOST_THROW_EXCEPTION(module_error() << errstr_info("problem with loading 'modelgeo.txt'"));
     }
 
+
     filedata.replace(-9999.0,9999.0);
 
-
-
-    size_t nxl = filedata.n_cols;
-    size_t nyl = filedata.n_rows;
+    int nxl = filedata.n_cols;
+    int nyl = filedata.n_rows;
 
     LOG_DEBUG << "Read in structured mesh of size " + std::to_string(nxl) + " " + std::to_string(nyl);
 
-    tri_mapping = std::unique_ptr<arma::Mat<double>>( new  arma::mat);
-    flstatus = tri_mapping->load( cfg.get("cell_mapping","cellmapping.txt"),arma::raw_ascii);
-    if(!flstatus)
-    {
-        BOOST_THROW_EXCEPTION(module_error() << errstr_info("problem with loading 'cellidmapping.txt'"));
-    }
 
+    ds.dxy = cfg.get("cellsize",3.0); // grid size (structure grid) - it will actually come from DEM
+    double xllcorner = cfg.get<double>("xllcorner");
+    double yllcorner = cfg.get<double>("yllcorner");
 
-    LOG_DEBUG << "Read in cellid mapping of size " + std::to_string(nxl) + " " + std::to_string(nyl);
-
-    if(tri_mapping->n_cols != filedata.n_cols ||
-        tri_mapping->n_rows != filedata.n_rows)
-    {
-        BOOST_THROW_EXCEPTION(module_error() << errstr_info("Inconsistent dimensions in both structured meshes"));
-    }
-
-    if(tri_mapping->max() >domain->size_faces() )
-      BOOST_THROW_EXCEPTION(module_error() << errstr_info("Max mapping is out of bounds"));
+    mapping = std::unique_ptr<arma::Mat<double>>( new  arma::mat(nyl,nxl,arma::fill::zeros));
+    mapping->replace(0,-9999.0);
 
     //figure out which raster cells go with what triangle
+    for(int col = 0;col < nxl; col++)
+    {
+        for(int row = 0; row < nyl; row++)
+        {
+            if(filedata(row,col) != 9999.0)
+            {
+              // GET THE MID POINT
+              double xcoord = xllcorner + col * ds.dxy + 0.5 * ds.dxy;
+              double ycoord = yllcorner + (nyl - row) * ds.dxy - 0.5 * ds.dxy;
+
+              auto face = domain->locate_face(xcoord, ycoord);
+              if (face == nullptr)
+              {
+                BOOST_THROW_EXCEPTION(
+                    module_error()
+                    << errstr_info("Raster does not map to any triangle. Raster coord = " +
+                                   std::to_string(xcoord) + "\t" +
+                                   std::to_string(ycoord)));
+              }
+
+              mapping->operator()(row, col) = face->cell_global_id;
+            }
+
+        }
+    }
+
+    mapping->save("mapping.asc",arma::raw_ascii);
+
+
     for (size_t i = 0; i < domain->size_faces(); i++)
     {
         auto face = domain->face(i);
         auto d = face->make_module_data<data>(ID);
 
-        d->rastercells = arma::find( *tri_mapping == face->cell_global_id );
+        d->rastercells = arma::find( *mapping == face->cell_global_id );
 
         if( d->rastercells.n_elem == 0)
         {
-//          LOG_DEBUG << face->cell_global_id;
-//          LOG_DEBUG << i;
-//            BOOST_THROW_EXCEPTION(module_error() << errstr_info("Triangle does not map to any rasters"));
+          BOOST_THROW_EXCEPTION(module_error() << errstr_info("Triangle does not map to any rasters. Tri#=" + std::to_string(face->cell_global_id)));
         }
     }
 
     ds.mx = nxl+2;
     ds.my = nyl+2;
-    size_t mx = ds.mx;
-    size_t my = ds.my;
+    int cols = ds.mx;
+    int rows = ds.my;
 
-    forcing = std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx-2,my-2));
+    forcing = std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows-2,cols-2));
 
-    ds.z= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.zb= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.h= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.u= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.v= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.p= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.q= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.pj= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.qj= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.us= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.dh= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.dp = std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.dq= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    //sbmx= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    //sbmy= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    //cfri= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.ks= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
+    ds.z= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.zb= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.h= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.u= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.v= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.p= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.q= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.pj= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.qj= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.us= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.dh= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.dp = std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.dq= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    //sbmx= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    //sbmy= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    //cfri= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.ks= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
 
 //  f_1= mass flux per unit width
 //  f_2= momentum flux per unit width in x-direction
 //  f_3= momentum flux per unit width in y-direction
-    ds.fe_1= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.fe_2= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.fe_3= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.fn_1= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.fn_2= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.fn_3= std::unique_ptr<arma::Mat<double>>( new  arma::mat(mx,my));
-    ds.ldry= std::unique_ptr<arma::Mat<float>>( new  arma::fmat(mx,my));
+    ds.fe_1= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.fe_2= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.fe_3= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.fn_1= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.fn_2= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.fn_3= std::unique_ptr<arma::Mat<double>>( new  arma::mat(rows,cols));
+    ds.ldry= std::unique_ptr<arma::Mat<float>>( new  arma::fmat(rows,cols));
 
     // input/read data
     ds.cfl = 1; // Courant condition
-    ds.dxy = cfg.get("dxy",3); // grid size (structure grid) - it will actually come from DEM
+
+
 //    ds.ntim = cfg.get("ntim",3000000);// maximum time step (seconds)
     //kapa = -2.    // /  -2=1.Ord ; -1=2.Ord   // KOMISCH, DASS REAL/INTEGER ->schauen bei Rolands Dateien
     ds.arbase = ds.dxy * ds.dxy;
@@ -993,7 +984,7 @@ void fluxos::init(mesh& domain)
     //ksfix = 0.2 // Chezy (rougness) -> NEEDs to be converted into a vector with data for all cells
     ds.cvdef = 0.07; // for turbulent stress calc
     ds.nuem = 1.2e-6; // molecular viscosity (for turbulent stress calc)
-    print_step = cfg.get("print_step",3600); // in seconds
+    print_step = cfg.get("print_step",global_param->dt()); // in seconds
 
     ds.nx = ds.mx - 2;
     ds.ny = ds.my - 2;
@@ -1016,4 +1007,5 @@ void fluxos::init(mesh& domain)
     ds.tim = 0.0f;
 
     ds.ntim = global_param->dt(); // dt = model timestep so don't step past that
-}
+
+    }
