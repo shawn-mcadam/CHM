@@ -733,7 +733,8 @@ void fluxos::write_results(declavar& ds, int print_tag)
     {
         for(ix=1;ix<=ds.nx;ix++)
         {
-            if ((*ds.h).at(iy,ix)>0.0f)
+//            if ((*ds.h).at(iy,ix)>0.0f)
+            if( (*ds.zb).at(iy,ix) != 9999.0)
             {
                 ux=sqrt((*ds.u).at(iy,ix) * (*ds.u).at(iy,ix) +
                         (*ds.v).at(iy,ix) * (*ds.v).at(iy,ix));
