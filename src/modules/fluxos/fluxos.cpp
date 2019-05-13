@@ -740,7 +740,7 @@ void fluxos::write_results(declavar& ds, int print_tag)
                         (*ds.v).at(iy,ix) * (*ds.v).at(iy,ix));
                 filedataR(a,0) = ix;  
                 filedataR(a,1) = iy; 
-                filedataR(a,2) = (*ds.z).at(iy,ix); 
+                filedataR(a,2) = (*ds.zb).at(iy,ix);
                 filedataR(a,3) = (*ds.z).at(iy,ix) - (*ds.zb).at(iy,ix);
                 filedataR(a,4) = (*ds.u).at(iy,ix); 
                 filedataR(a,5) = (*ds.v).at(iy,ix); 
