@@ -130,6 +130,8 @@ void snobal::init(mesh& domain)
 	       sbal->z_g = cfg.get("z_g",0.1);
 	       sbal->relative_hts = 1; // True (1) -- relative to the snow surface via scale_wind_speed which takes into account snowdepth.
 
+	       sbal->slope = face->slope(); // in rad
+
 	       sbal->R_n_bar = 0.0;
 	       sbal->H_bar = 0.0;
 	       sbal->L_v_E_bar = 0.0;
