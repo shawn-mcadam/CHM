@@ -393,7 +393,7 @@ message(STATUS "Found ViennaCL at ${VIENNACL_INCLUDE_DIR}")
 
 if(USE_MPI AND MPI_FOUND)
   find_package(Boost
-    1.62.0
+    1.71.0
     COMPONENTS
     system
     filesystem
@@ -408,7 +408,7 @@ if(USE_MPI AND MPI_FOUND)
     REQUIRED)
 else()
   find_package(Boost
-    1.62.0
+    1.71.0
     COMPONENTS
     system
     filesystem
