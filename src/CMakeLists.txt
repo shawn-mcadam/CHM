@@ -142,8 +142,6 @@ set (HEADER_FILES
 
 
 set(EXT_TARGETS
-	${LAPACK_LIBRARIES}
-	${ARPACK_LIBRARY}
 
 	cgal::cgal
 	eigen3::eigen3
