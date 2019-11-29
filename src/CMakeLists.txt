@@ -149,7 +149,6 @@ set(EXT_TARGETS
 		Threads::Threads
 		armadillo::armadillo
 		vtk::vtk
-		${LAPACK_LIBRARIES}
 		Iconv::Iconv # This is for unicode  support in gdal and is not conssitently brought in when building gdal
 		gdal::gdal #proj is brought it via this
 		viennacl::viennacl
