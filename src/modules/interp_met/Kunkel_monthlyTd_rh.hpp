@@ -54,7 +54,7 @@
 * Reference:
 * Kunkel, K. E. (1989). Simple procedures for extrapolation of humidity variables in the mountainous western United States. Journal of Climate, 2(7), 656–669. Retrieved from http://ams.allenpress.com/perlserv/?request=get-abstract&amp;doi=10.1175/1520-0442(1989)002<0656:SPFEOH>2.0.CO;2
 */
-class Kunkel_monthlyTd_rh : public module_base
+class Kunkel_monthlyTd_rh final : public module_base
 {
 REGISTER_MODULE_HPP(Kunkel_monthlyTd_rh);
 public:

@@ -53,7 +53,7 @@
 * - Shortwave direct "iswr_direct" [W/m^2]
 * - Shortwave diffuse "iswr_diffuse" [W/m^2]
 */
-class slope_iswr : public module_base
+class slope_iswr final : public module_base
 {
 REGISTER_MODULE_HPP(slope_iswr);
     public:

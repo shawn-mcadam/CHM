@@ -55,7 +55,7 @@
 * Provides:
 * - Sx, Winstral paramter [degrees]
 */
-class Winstral_parameters : public module_base
+class Winstral_parameters final : public module_base
 {
 REGISTER_MODULE_HPP(Winstral_parameters);
 public:

@@ -50,7 +50,7 @@
 * - Air temperatue "t" [degC]
 * - Air temperatue "const_llra_ta" [degC]
 */
-class const_llra_ta : public module_base
+class const_llra_ta final : public module_base
 {
 REGISTER_MODULE_HPP(const_llra_ta);
 public:

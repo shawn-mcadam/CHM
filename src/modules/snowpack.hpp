@@ -37,7 +37,7 @@
 #include <snowpack/libsnowpack.h>
 
 #include <string>
-class Lehning_snowpack : public module_base
+class Lehning_snowpack final : public module_base
 {
 REGISTER_MODULE_HPP(Lehning_snowpack);
 public:

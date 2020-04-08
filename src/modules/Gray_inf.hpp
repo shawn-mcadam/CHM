@@ -31,7 +31,7 @@
 
 
 
-class Gray_inf : public module_base
+class Gray_inf final : public module_base
 {
 REGISTER_MODULE_HPP(Gray_inf)
 public:

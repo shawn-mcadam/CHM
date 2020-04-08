@@ -50,7 +50,7 @@
 * - Wind "U_R" [m/s] at reference height
 * - Wind direction 'vw_dir' [degrees]
 */
-class uniform_wind : public module_base
+class uniform_wind final : public module_base
 {
 REGISTER_MODULE_HPP(uniform_wind);
 public:

@@ -32,7 +32,7 @@
 //Dozier, J., & Frew, J. (1990).
 // Rapid calculation of terrain parameters for radiation modeling from digital elevation data.
 // IEEE Transactions on Geoscience and Remote, 28(5), 963–969.
-class fast_shadow : public module_base
+class fast_shadow final : public module_base
 {
 REGISTER_MODULE_HPP(fast_shadow);
 public:

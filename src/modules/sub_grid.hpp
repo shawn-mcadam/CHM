@@ -29,7 +29,7 @@
 #include <string>
 #include <math.h>
 
-class sub_grid : public module_base {
+class sub_grid final : public module_base {
 REGISTER_MODULE_HPP(sub_grid);
 public:
     sub_grid(config_file cfg);

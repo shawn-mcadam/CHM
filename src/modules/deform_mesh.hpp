@@ -31,7 +31,7 @@
 /**
  * Proff of concept for deformable mesh
  */
-class deform_mesh : public module_base
+class deform_mesh final : public module_base
 {
 REGISTER_MODULE_HPP(deform_mesh)
 public:

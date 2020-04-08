@@ -45,7 +45,7 @@
 * - Shortwave diffuse "iswr_diffuse" [W/m^2]
 * - Atmospheric transmittance, [0,1] "atm_trans" [-]
 */
-class iswr_from_obs : public module_base
+class iswr_from_obs final : public module_base
 {
 REGISTER_MODULE_HPP(iswr_from_obs);
 public:

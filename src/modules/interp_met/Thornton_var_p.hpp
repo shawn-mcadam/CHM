@@ -46,7 +46,7 @@
 * Reference:
 * - Thornton, P. E., Running, S. W., & White, M. A. (1997). Generating surfaces of daily meteorological variables over large regions of complex terrain. Journal of Hydrology, 190(3-4), 214–251. http://doi.org/10.1016/S0022-1694(96)03128-9
 * */
-class Thornton_var_p : public module_base
+class Thornton_var_p final : public module_base
 {
 REGISTER_MODULE_HPP(Thornton_var_p);
 public:

@@ -26,7 +26,7 @@
 #include "module_base.hpp"
 #include <gsl/gsl_fit.h>
 #include <meteoio/MeteoIO.h>
-class rh_from_obs : public module_base
+class rh_from_obs final : public module_base
 {
 REGISTER_MODULE_HPP(rh_from_obs);
 public:

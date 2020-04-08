@@ -84,7 +84,7 @@
 * Provides:
 * - mass_drift (kg/m^2) Positive for mass deposition, negative for mass removal.
 */
-class PBSM3D : public module_base
+class PBSM3D final : public module_base
 {
 REGISTER_MODULE_HPP(PBSM3D);
 public:

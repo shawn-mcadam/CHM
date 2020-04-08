@@ -29,7 +29,7 @@
 #include <meteoio/MeteoIO.h>
 
 
-class Iqbal_iswr : public module_base
+class Iqbal_iswr final : public module_base
 {
 REGISTER_MODULE_HPP(Iqbal_iswr);
 public:

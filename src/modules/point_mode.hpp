@@ -31,7 +31,7 @@
 /*
  * When using the model in point mode. Doesn't do any interp, but rather uses a specific input station as input.
  */
-class point_mode : public module_base
+class point_mode final : public module_base
 {
 REGISTER_MODULE_HPP(point_mode);
 public:

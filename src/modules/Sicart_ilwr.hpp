@@ -51,7 +51,7 @@
 * Provides:
 * - Incoming longwave  "ilwr" [W/m^2]
 */
-class Sicart_ilwr : public module_base
+class Sicart_ilwr final : public module_base
 {
 REGISTER_MODULE_HPP(Sicart_ilwr);
 public:

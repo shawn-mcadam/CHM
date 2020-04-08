@@ -67,7 +67,7 @@
 * > Liston, Glen E., and Kelly Elder. 2006. A meteorological distribution system for high-resolution terrestrial modeling (MicroMet). Journal of hydrometeorology 7: 217-234
 
 */
-class Liston_monthly_llra_ta : public module_base
+class Liston_monthly_llra_ta final : public module_base
 {
 REGISTER_MODULE_HPP(Liston_monthly_llra_ta);
 public:

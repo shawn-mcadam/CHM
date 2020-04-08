@@ -52,7 +52,7 @@
 * - Precip "p" [mm]
 * - Precip "p_no_slope" [mm]
 */
-class p_no_lapse : public module_base
+class p_no_lapse final : public module_base
 {
 REGISTER_MODULE_HPP(p_no_lapse);
 public:

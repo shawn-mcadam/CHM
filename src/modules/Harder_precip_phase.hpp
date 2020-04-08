@@ -59,7 +59,7 @@
 * - Cumulated Snow precip p_snow [mm]
 * - Cumulated Liquid precip p_rain [mm]
 */
-class Harder_precip_phase : public module_base
+class Harder_precip_phase final : public module_base
 {
 REGISTER_MODULE_HPP(Harder_precip_phase);
 public:

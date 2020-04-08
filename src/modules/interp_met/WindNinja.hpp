@@ -58,7 +58,7 @@
 * - Wind "U_R" [m/s] at reference height
 * - Wind direction 'vw_dir' [degrees]
 */
-class WindNinja : public module_base
+class WindNinja final : public module_base
 {
 REGISTER_MODULE_HPP(WindNinja);
 public:

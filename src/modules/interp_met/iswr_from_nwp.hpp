@@ -44,7 +44,7 @@
 * - Shortwave direct "iswr_direct" [W/m^2]
 * - Shortwave diffuse "iswr_diffuse" [W/m^2]
 */
-class iswr_from_nwp : public module_base
+class iswr_from_nwp final : public module_base
 {
 REGISTER_MODULE_HPP(iswr_from_nwp);
 public:

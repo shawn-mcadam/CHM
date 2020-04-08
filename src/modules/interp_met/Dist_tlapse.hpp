@@ -50,7 +50,7 @@
 * - Lapse rate "t_lapse_rate" [degC/m]
 *
 */
-class Dist_tlapse : public module_base
+class Dist_tlapse final : public module_base
 {
 REGISTER_MODULE_HPP(Dist_tlapse);
 public:

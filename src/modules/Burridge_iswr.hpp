@@ -46,7 +46,7 @@
  * - Burridge, D. M., and A. J. Gadd, 1974: The Meteorological Office operational 10 level numerical weather prediction model (December 1974). U.K. Met. Office Tech. Notes 12 and 48, 57 pp.
  * - Described in Liston, G. E., & Elder, K. (2006). A meteorological distribution system for high-resolution terrestrial modeling (MicroMet). Journal of Hydrometeorology, 7(2), 217–234. http://doi.org/10.1175/JHM486.1
  */
-class Burridge_iswr : public module_base
+class Burridge_iswr final : public module_base
 {
 REGISTER_MODULE_HPP(Burridge_iswr);
 public:

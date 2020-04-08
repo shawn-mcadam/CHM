@@ -53,7 +53,7 @@
 * -
 * - ET "ET" [mm/time]
 */
-class PenmanMonteith_evaporation : public module_base
+class PenmanMonteith_evaporation final : public module_base
 {
 REGISTER_MODULE_HPP(PenmanMonteith_evaporation);
 public:

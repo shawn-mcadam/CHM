@@ -31,7 +31,7 @@
 #include "module_base.hpp"
 
 #include <string>
-class snow_slide : public module_base
+class snow_slide final : public module_base
 {
 REGISTER_MODULE_HPP(snow_slide);
 public:

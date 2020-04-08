@@ -55,7 +55,7 @@
 *
 
 */
-class t_monthly_lapse : public module_base
+class t_monthly_lapse final : public module_base
 {
 REGISTER_MODULE_HPP(t_monthly_lapse);
 public:

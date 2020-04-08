@@ -35,7 +35,7 @@
 /**
 * \addtogroup modules
 * @{
-* \class threshold_p_phase : public module_base
+* \class threshold_p_phase final : public module_base
 {
 * \brief Precip phase from air temp
 *
@@ -46,7 +46,7 @@
 * Provides:
 * - Atmospheric transmittance "cloud_frac" [-]
 */
-class threshold_p_phase : public module_base
+class threshold_p_phase final : public module_base
 {
 REGISTER_MODULE_HPP(threshold_p_phase);
 public:

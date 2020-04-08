@@ -48,7 +48,7 @@
  * Provides:
  *
  */
-class module_template : public module_base
+class module_template final : public module_base
 {
 REGISTER_MODULE_HPP(module_template);
 private:

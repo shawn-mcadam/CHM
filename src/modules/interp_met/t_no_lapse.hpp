@@ -47,7 +47,7 @@
 * - Air temperatue "t_no_lapse" [degC]
 *
 */
-class t_no_lapse : public module_base
+class t_no_lapse final : public module_base
 {
 REGISTER_MODULE_HPP(t_no_lapse);
 public:

@@ -47,7 +47,7 @@
 * - Longwave "ilwr" [W/m^2]
 *
 */
-class lw_no_lapse : public module_base
+class lw_no_lapse final : public module_base
 {
 REGISTER_MODULE_HPP(lw_no_lapse);
 public:

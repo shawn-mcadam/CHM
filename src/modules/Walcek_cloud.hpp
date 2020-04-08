@@ -45,7 +45,7 @@
 * Provides:
 * - Atmospheric transmittance "cloud_frac" [-]
 */
-class Walcek_cloud : public module_base
+class Walcek_cloud final : public module_base
 {
 REGISTER_MODULE_HPP(Walcek_cloud);
 public:

@@ -32,7 +32,7 @@
  * Impliments the fetch algorithm of
  * Lapen, D. R., and L. W. Martz (1993), The measurement of two simple topographic indices of wind sheltering-exposure from raster digital elevation models, Comput. Geosci., 19(6), 769–779, doi:10.1016/0098-3004(93)90049-B.
  */
-class fetchr : public module_base
+class fetchr final : public module_base
 {
 REGISTER_MODULE_HPP(fetchr);
 public:

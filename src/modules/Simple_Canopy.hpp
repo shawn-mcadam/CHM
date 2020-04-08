@@ -38,7 +38,7 @@
  *
  */
 
-class Simple_Canopy : public module_base
+class Simple_Canopy final : public module_base
 {
 REGISTER_MODULE_HPP(Simple_Canopy);
 public:

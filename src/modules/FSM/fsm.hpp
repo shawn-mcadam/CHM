@@ -73,7 +73,7 @@ extern "C"
  * Provides:
  *
  */
-class FSM : public module_base
+class FSM final : public module_base
 {
   REGISTER_MODULE_HPP(FSM);
   private:

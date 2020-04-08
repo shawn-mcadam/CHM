@@ -32,7 +32,7 @@
  * Eqn 4, 5
  * Essery, R., and P. Etchevers (2004), Parameter sensitivity in simulations of snowmelt, J. Geophys. Res., 109(D20111), 1–15, doi:10.1029/2004JD005036.
  */
-class Richard_albedo : public module_base
+class Richard_albedo final : public module_base
 {
 REGISTER_MODULE_HPP(Richard_albedo);
 public:

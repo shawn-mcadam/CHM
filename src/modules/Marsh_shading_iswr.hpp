@@ -75,7 +75,7 @@ struct vertex_data : vertex_info
 * Reference:
 * > Marsh, C.B., J.W. Pomeroy, and R.J. Spiteri. “Implications of Mountain Shading on Calculating Energy for Snowmelt Using Unstructured Triangular Meshes.” Hydrological Processes 26, no. 12 (June 15, 2012): 1767–78. doi:10.1002/hyp.9329.
 */
-class Marsh_shading_iswr : public module_base
+class Marsh_shading_iswr final : public module_base
 {
 REGISTER_MODULE_HPP(Marsh_shading_iswr);
     public:

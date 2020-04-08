@@ -37,7 +37,7 @@
  * Depends:
  *
  */
-class solar : public module_base
+class solar final : public module_base
 {
 
 REGISTER_MODULE_HPP(solar);

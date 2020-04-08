@@ -51,7 +51,7 @@
 * Reference:
 * >Cullen, R. M., and S. J. Marshall (2011), Mesoscale temperature patterns in the Rocky Mountains and foothills region of southern Alberta, Atmos. - Ocean, 49(3), 189–205, doi:10.1080/07055900.2011.592130.
 */
-class Cullen_monthly_llra_ta : public module_base
+class Cullen_monthly_llra_ta final : public module_base
 {
 REGISTER_MODULE_HPP(Cullen_monthly_llra_ta);
 public:

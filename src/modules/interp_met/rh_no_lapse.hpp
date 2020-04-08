@@ -40,7 +40,7 @@
 * Provides:
 * - Relative Humidity 'rh' [%]
 */
-class rh_no_lapse : public module_base
+class rh_no_lapse final : public module_base
 {
 REGISTER_MODULE_HPP(rh_no_lapse);
 public:

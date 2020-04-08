@@ -31,7 +31,7 @@
 /**
  * Proof of concept for crop_rotation
  */
-class crop_rotation : public module_base
+class crop_rotation final : public module_base
 {
 REGISTER_MODULE_HPP(crop_rotation)
 public:

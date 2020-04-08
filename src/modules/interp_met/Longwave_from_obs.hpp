@@ -50,7 +50,7 @@
 * Reference:
 * Marty et al. (2002) (add full ref here)
 */
-class Longwave_from_obs : public module_base
+class Longwave_from_obs final : public module_base
 {
 REGISTER_MODULE_HPP(Longwave_from_obs);
 public:

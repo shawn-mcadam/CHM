@@ -44,7 +44,7 @@ public:
     double delta_avalanche_swe;
 
 };
-class snobal : public module_base
+class snobal final : public module_base
 {
 REGISTER_MODULE_HPP(snobal);
 public:
