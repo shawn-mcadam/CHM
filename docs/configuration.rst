@@ -435,7 +435,7 @@ Both mesh and timeseries can be used together.
    :type: string
    :default: "output"
 
-   The output directory name.
+   The relative pathname to the output directory.
 
 
 timeseries output
