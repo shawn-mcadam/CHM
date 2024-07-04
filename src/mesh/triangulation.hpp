@@ -314,6 +314,12 @@ public:
 
     bool has_vegetation();
 
+    /**
+     * Retrieves a vegetation attribute for the face. This will preferentially look for a distributed variable,
+     * before falling back to looking for a classified landcover map + paramter table (from config).
+     * @param variable Name of variable to lookup.
+     * @return Value of the variable at this face
+     */
     double veg_attribute(const std::string &variable);
 
     /**
