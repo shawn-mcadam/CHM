@@ -303,7 +303,8 @@ void Simple_Canopy::run(mesh_elem &face)
 
 
     // Canopy type
-    switch(data.canopyType) {
+    switch(data.canopyType)
+    {
         case 0: // 0 = canopy
         {
             //==============================================================================
@@ -592,6 +593,16 @@ void Simple_Canopy::init(mesh& domain)
 	       {
                     d.CanopyHeight     = face->veg_attribute("CanopyHeight");
                     d.LAI              = face->veg_attribute("LAI");
+
+                    // this parameterization just doesn't work well for LAI below 1.5, especially with tall trees
+                    if(d.CanopyHeight > 0 && d.LAI < 1.5)
+                    {
+                        SPDLOG_ERROR("CanopyHeight was defined for triangle global_id={} but LAI < 1.5; Setting CanopyHeight to zero", face->cell_global_id);
+
+                        d.CanopyHeight = 0;
+//                        CHM_THROW_EXCEPTION(missing_value_error, "CanopyHeight was defined but LAI is zero.");
+                    }
+
 		   // Get Canopy type (CRHM canop classifcation: Canopy, Clearing, or Gap)
                     // This might not exist if we are using distributed canopy heights
                     if(face->has_parameter("canopyType"))
@@ -604,7 +615,6 @@ void Simple_Canopy::init(mesh& domain)
                             d.canopyType = 1; // clearing
                         else
                             d.canopyType = 0; // canopy
-
                     }
 
 
