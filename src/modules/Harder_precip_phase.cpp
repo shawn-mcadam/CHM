@@ -124,8 +124,8 @@ void Harder_precip_phase::run(mesh_elem& face)
     frTi = std::trunc(100.0*frTi) / 100.0; //truncate to 2 decimal positions
 
     // Bound the ratio to be valid for 3% to 97% as per pers. comms. Harder, 2023.
-    if(frTi < 0.03) //3%
-        frTi = 0.03;
+    if(frTi < 0.03) //3%, floor to zero
+        frTi = 0.00;
     if(frTi > 0.97) // 97%
         frTi = 1.0;
 
