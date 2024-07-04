@@ -165,20 +165,22 @@ class FSM : public module_base
             // State variables
             float albs = 0.8;
             float Tsrf = 263.0; // cold soils
-            float Dsnw[3] = {0, 0, 0};
-            int Nsnow = 0;
-            float Qcan[2] = {0, 0};
-            float Rgrn[3] = {__parameters_MOD_rgr0, __parameters_MOD_rgr0, __parameters_MOD_rgr0};
-            float Sice[3] = {0, 0, 0};
+            float Dsnw[6] = {0, 0, 0, 0, 0, 0}; //Snow layer thicknesses (m)
+            int Nsnow = 0; //Number of snow layers
+            float Qcan[2] = {0, 0}; // Canopy air space humidities
+            float Rgrn[6] = {__parameters_MOD_rgr0, __parameters_MOD_rgr0, __parameters_MOD_rgr0, __parameters_MOD_rgr0, __parameters_MOD_rgr0, __parameters_MOD_rgr0 }; //Snow layer grain radii (m)
+            float Sice[6] = {0, 0, 0, 0, 0, 0}; // Ice content of snow layers (kg/m^2)
 
-            float Sliq[3] = {0, 0, 0};
-            float Sveg[2] = {0, 0};
-            float Tcan[2] = {285, 285};
-            float Tsnow[3] = {270, 270, 270};
-            float Tsoil[4] = {263, 263.1, 263.2, 263.3}; //cold soils
-            float Tveg[2] = {285, 285};
+            float Sliq[6] = {0, 0, 0, 0, 0, 0}; // Liquid content of snow layers (kg/m^2)
+            float Sveg[2] = {0, 0}; //Snow mass on vegetation layers (kg/m^2)
+            float Tcan[2] = {285, 285}; //Canopy air space temperatures (K)
+            float Tsnow[6] = {263, 263, 263, 263, 263, 263}; //Snow layer temperatures (K)
+            float Tsoil[4] = {263, 263.1, 263.2, 263.3}; //Soil layer temperatures (K); Cold soils
+            float Tveg[2] = {285, 285}; // Vegetation layer temperatures (K)
 
             float Vsat = 0.27;
+
+            // Volumetric moisture content of soil layers
             float Vsmc[4] = {(float)0.5 * Vsat, (float)0.5 * Vsat, (float)0.5 * Vsat, (float)0.5 * Vsat};
 
         } state;
@@ -201,7 +203,7 @@ class FSM : public module_base
             float SWout = -9999; // Outgoing SW radiation (W/m^2)
             float SWsub = -9999; // Subcanopy downward SW radiation (W/m^2)
             float Usub = -9999; // Subcanopy wind speed (m/s)
-            float Wflx[3] = {-9999, -9999, -9999}; // Water flux into snow layer (kg/m^2/s)
+            float Wflx[6] = {-9999, -9999, -9999, -9999, -9999, -9999}; // Water flux into snow layer (kg/m^2/s)
 
             float sum_snowpack_subl = -9999; // cumulative sublimation (kg/m^2)
         } diag;

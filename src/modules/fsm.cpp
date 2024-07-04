@@ -95,7 +95,7 @@ void FSM::init(mesh& domain)
     __layers_MOD_zsub = 1.5; // Subcanopy wind speed diagnostic height (m)
 
 //    __layers_MOD_ncnpy = 2; // Number of canopy layers
-    __layers_MOD_nsmax = 3; // Maximum number of snow layers
+    __layers_MOD_nsmax = 6; // Maximum number of snow layers
     __layers_MOD_nsoil = 4; // Number of soil layers
 
     __soilprops_MOD_b = 7.63; // Clapp-Hornberger exponent
@@ -340,6 +340,9 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
     chkpt.create_variable1D("fsm:Dsnw[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Dsnw[1]", domain->size_faces());
     chkpt.create_variable1D("fsm:Dsnw[2]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Dsnw[3]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Dsnw[4]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Dsnw[5]", domain->size_faces());
 
     chkpt.create_variable1D("fsm:Nsnow", domain->size_faces());
 
@@ -351,10 +354,16 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
     chkpt.create_variable1D("fsm:Sice[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Sice[1]", domain->size_faces());
     chkpt.create_variable1D("fsm:Sice[2]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sice[3]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sice[4]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sice[5]", domain->size_faces());
 
     chkpt.create_variable1D("fsm:Sliq[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Sliq[1]", domain->size_faces());
     chkpt.create_variable1D("fsm:Sliq[2]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sliq[3]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sliq[4]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Sliq[5]", domain->size_faces());
 
     chkpt.create_variable1D("fsm:Sveg[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Sveg[1]", domain->size_faces());
@@ -365,6 +374,9 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
     chkpt.create_variable1D("fsm:Tsnow[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Tsnow[1]", domain->size_faces());
     chkpt.create_variable1D("fsm:Tsnow[2]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Tsnow[3]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Tsnow[4]", domain->size_faces());
+    chkpt.create_variable1D("fsm:Tsnow[5]", domain->size_faces());
 
     chkpt.create_variable1D("fsm:Tsoil[0]", domain->size_faces());
     chkpt.create_variable1D("fsm:Tsoil[1]", domain->size_faces());
@@ -393,6 +405,9 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
         chkpt.put_var1D("fsm:Dsnw[0]", i, d.state.Dsnw[0]);
         chkpt.put_var1D("fsm:Dsnw[1]", i, d.state.Dsnw[1]);
         chkpt.put_var1D("fsm:Dsnw[2]", i, d.state.Dsnw[2]);
+        chkpt.put_var1D("fsm:Dsnw[3]", i, d.state.Dsnw[3]);
+        chkpt.put_var1D("fsm:Dsnw[4]", i, d.state.Dsnw[4]);
+        chkpt.put_var1D("fsm:Dsnw[5]", i, d.state.Dsnw[5]);
 
         chkpt.put_var1D("fsm:Nsnow", i, d.state.Nsnow);
 
@@ -403,10 +418,16 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
         chkpt.put_var1D("fsm:Sice[0]", i, d.state.Sice[0]);
         chkpt.put_var1D("fsm:Sice[1]", i, d.state.Sice[1]);
         chkpt.put_var1D("fsm:Sice[2]", i, d.state.Sice[2]);
+        chkpt.put_var1D("fsm:Sice[3]", i, d.state.Sice[3]);
+        chkpt.put_var1D("fsm:Sice[4]", i, d.state.Sice[4]);
+        chkpt.put_var1D("fsm:Sice[5]", i, d.state.Sice[5]);
 
         chkpt.put_var1D("fsm:Sliq[0]", i, d.state.Sliq[0]);
         chkpt.put_var1D("fsm:Sliq[1]", i, d.state.Sliq[1]);
         chkpt.put_var1D("fsm:Sliq[2]", i, d.state.Sliq[2]);
+        chkpt.put_var1D("fsm:Sliq[3]", i, d.state.Sliq[3]);
+        chkpt.put_var1D("fsm:Sliq[4]", i, d.state.Sliq[4]);
+        chkpt.put_var1D("fsm:Sliq[5]", i, d.state.Sliq[5]);
 
         chkpt.put_var1D("fsm:Sveg[0]", i, d.state.Sveg[0]);
         chkpt.put_var1D("fsm:Sveg[1]", i, d.state.Sveg[1]);
@@ -417,6 +438,9 @@ void FSM::checkpoint(mesh& domain,  netcdf& chkpt)
         chkpt.put_var1D("fsm:Tsnow[0]", i, d.state.Tsnow[0]);
         chkpt.put_var1D("fsm:Tsnow[1]", i, d.state.Tsnow[1]);
         chkpt.put_var1D("fsm:Tsnow[2]", i, d.state.Tsnow[2]);
+        chkpt.put_var1D("fsm:Tsnow[3]", i, d.state.Tsnow[3]);
+        chkpt.put_var1D("fsm:Tsnow[4]", i, d.state.Tsnow[4]);
+        chkpt.put_var1D("fsm:Tsnow[5]", i, d.state.Tsnow[5]);
 
         chkpt.put_var1D("fsm:Tsoil[0]", i, d.state.Tsoil[0]);
         chkpt.put_var1D("fsm:Tsoil[1]", i, d.state.Tsoil[1]);
@@ -449,6 +473,9 @@ void FSM::load_checkpoint(mesh& domain, netcdf& chkpt)
         d.state.Dsnw[0] = chkpt.get_var1D("fsm:Dsnw[0]", i);
         d.state.Dsnw[1] = chkpt.get_var1D("fsm:Dsnw[1]", i);
         d.state.Dsnw[2] = chkpt.get_var1D("fsm:Dsnw[2]", i);
+        d.state.Dsnw[3] = chkpt.get_var1D("fsm:Dsnw[3]", i);
+        d.state.Dsnw[4] = chkpt.get_var1D("fsm:Dsnw[4]", i);
+        d.state.Dsnw[5] = chkpt.get_var1D("fsm:Dsnw[5]", i);
 
         d.state.Nsnow = chkpt.get_var1D("fsm:Nsnow", i);
 
@@ -458,10 +485,16 @@ void FSM::load_checkpoint(mesh& domain, netcdf& chkpt)
         d.state.Sice[0] = chkpt.get_var1D("fsm:Sice[0]", i);
         d.state.Sice[1] = chkpt.get_var1D("fsm:Sice[1]", i);
         d.state.Sice[2] = chkpt.get_var1D("fsm:Sice[2]", i);
+        d.state.Sice[3] = chkpt.get_var1D("fsm:Sice[3]", i);
+        d.state.Sice[4] = chkpt.get_var1D("fsm:Sice[4]", i);
+        d.state.Sice[5] = chkpt.get_var1D("fsm:Sice[5]", i);
 
         d.state.Sliq[0] = chkpt.get_var1D("fsm:Sliq[0]", i);
         d.state.Sliq[1] = chkpt.get_var1D("fsm:Sliq[1]", i);
         d.state.Sliq[2] = chkpt.get_var1D("fsm:Sliq[2]", i);
+        d.state.Sliq[3] = chkpt.get_var1D("fsm:Sliq[3]", i);
+        d.state.Sliq[4] = chkpt.get_var1D("fsm:Sliq[4]", i);
+        d.state.Sliq[5] = chkpt.get_var1D("fsm:Sliq[5]", i);
 
         d.state.Sveg[0] = chkpt.get_var1D("fsm:Sveg[0]", i);
         d.state.Sveg[1] = chkpt.get_var1D("fsm:Sveg[1]", i);
@@ -472,6 +505,9 @@ void FSM::load_checkpoint(mesh& domain, netcdf& chkpt)
         d.state.Tsnow[0] = chkpt.get_var1D("fsm:Tsnow[0]", i);
         d.state.Tsnow[1] = chkpt.get_var1D("fsm:Tsnow[1]", i);
         d.state.Tsnow[2] = chkpt.get_var1D("fsm:Tsnow[2]", i);
+        d.state.Tsnow[3] = chkpt.get_var1D("fsm:Tsnow[3]", i);
+        d.state.Tsnow[4] = chkpt.get_var1D("fsm:Tsnow[4]", i);
+        d.state.Tsnow[5] = chkpt.get_var1D("fsm:Tsnow[5]", i);
 
         d.state.Tsoil[0] = chkpt.get_var1D("fsm:Tsoil[0]", i);
         d.state.Tsoil[1] = chkpt.get_var1D("fsm:Tsoil[1]", i);
