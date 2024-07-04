@@ -393,7 +393,7 @@ void snow_slide::run(mesh& domain)
         {
             //bail
             done = 1;
-            SPDLOG_ERROR("SnowSlide did not converge after 500 iterations");
+            SPDLOG_ERROR("SnowSlide did not converge after 25 iterations");
         }
 
 #ifdef USE_MPI
