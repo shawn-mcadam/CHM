@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.16)
-project (CHM-project CXX Fortran)
+cmake_minimum_required (VERSION 3.21)
+project (CHM-project C CXX Fortran)
 
 # In CMake 3.12 and above the find_package(<PackageName>) command now searches prefixes specified by the <PackageName>_ROOT
 # CMake variable and the <PackageName>_ROOT environment variable.
@@ -10,9 +10,17 @@ cmake_policy(SET CMP0074 NEW)
 # set RPATH ON
 cmake_policy(SET CMP0042 NEW)
 
-set(CMAKE_CXX_STANDARD 14)
+# Use _ROOT
+cmake_policy(SET CMP0144 NEW)
+
+# Needed in addition to the target cxx standard set later
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set these off for kokkos compatibility
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(Boost_NO_WARN_NEW_VERSIONS ON)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
@@ -21,25 +29,26 @@ endif()
 
 
 # Options. Turn on with 'cmake -Dmyvarname=ON'.
-option(USE_MPI "Enable MPI"  OFF )
-option(USE_OMP "Enable OpenMP"  ON )
-option(OMP_SAFE_EXCEPTION "Enables safe exception handling from within OMP regions." ON)
+option(USE_MPI "Enable MPI"  ON )
+option(USE_OMP "Enable OpenMP. Use MPI for better parallelism"  OFF )
+option(OMP_SAFE_EXCEPTION "Enables safe exception handling from within OMP regions." OFF)
 option(ENABLE_SAFE_CHECKS "Enable variable map checking. Runtime perf cost. Allows for ensuring a variable is indeed available to be lookedup." ON)
 option(BUILD_TESTS "Build all tests."  OFF ) # Makes boolean 'test' available.
 option(STATIC_ANLAYSIS "Enable PVS static anlaysis" OFF)
-option(USE_TCMALLOC "Use tcmalloc from gperftools " ON)
-option(USE_JEMALLOC "Use jemalloc" OFF)
+option(USE_TCMALLOC "Use tcmalloc from gperftools " OFF)
+option(USE_JEMALLOC "Use jemalloc" ON)
 option(BUILD_DOCS "Builds documentation" OFF)
-option(BUILD_WITH_CONAN "Uses Conan for dependencies" ON)
 
 message(STATUS "This is an MPI build? ${USE_MPI}")
 
 
-
-if(BUILD_WITH_CONAN AND USE_JEMALLOC)
-    message(WARNING "With a Conan build, USE_JEMALLOC will use a system jemalloc" )
+if(BUILD_WITH_CONAN)
+    message(FATAL_ERROR "Building CHM with conan is no longer supported in favour of using spack. Please revise build env accordingly.\n https://chm.readthedocs.io/en/dev/build.html")
 endif()
 
+if(NOT USE_MPI)
+    message(FATAL_ERROR "Building CHM without MPI support is no longer supported")
+endif()
 
 option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." TRUE)
 if (${FORCE_COLORED_OUTPUT})
@@ -56,13 +65,9 @@ endif()
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
-
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/")
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/CMake/")
 
-if(NOT BUILD_WITH_CONAN)
-    LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/CMake-without-conan/")
-    LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake-without-conan/")
-endif()
 
 #########
 # lovely CMake script to integrate git hashes
@@ -123,64 +128,31 @@ endmacro()
 # ---------------------------------------------------------------
 # ------ Start of find_package section --------------------------
 # ---------------------------------------------------------------
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake_find_names.cmake)
 
 # Need to check for MPI before building external libraries
-find_package(MPI)
-if(MPI_FOUND AND USE_MPI)
-    message(STATUS "Found MPI at ${MPI_CXX_INCLUDE_DIRS}")
-    add_definitions(-DUSE_MPI)
+find_package(MPI REQUIRED COMPONENTS C CXX Fortran) # MPI_C is needed for the mpi that HDF can bring in
 
-    if(BUILD_WITH_CONAN)
-        # ensure boost MPI support was built
-        if(MPI_FOUND AND USE_MPI)
-            file(READ ${CMAKE_BINARY_DIR}/FindBoost.cmake txt)
-            string(FIND "${txt}" "boost_mpi" RETCODE)
+message(STATUS "Found MPI at ${MPI_CXX_INCLUDE_DIRS}")
+add_definitions(-DUSE_MPI)
 
-            if(${RETCODE} EQUAL -1) # -1 is not found retcode from find
-                message(FATAL_ERROR "MPI was asked for, however boost was not built with mpi. Please build boost (--build boost) locally with a working MPI. See wiki for more information.")
-            endif()
-        endif()
-    endif()
-else()
-  message(WARNING "MPI not enabled. Building for single process.")
-endif()
-
-if(USE_MPI AND NOT MPI_FOUND)
-    message(FATAL_ERROR "MPI was asked for, but not found")
-endif()
 
 set(Boost_USE_MULTITHREADED ON) #https://stackoverflow.com/a/58085634/410074
-if(USE_MPI AND MPI_FOUND)
-    find_package(Boost
-            1.71.0
-            COMPONENTS
-            system
-            filesystem
-            date_time
-            log
-            thread
-            regex
-            iostreams
-            program_options
-            mpi
-            serialization
-            REQUIRED)
-else()
-    find_package(Boost
-            1.71.0
-            COMPONENTS
-            system
-            filesystem
-            date_time
-            log
-            thread
-            regex
-            iostreams
-            program_options
-            REQUIRED
-            )
-endif()
+
+find_package(Boost
+        1.83.0
+        COMPONENTS
+        system
+        filesystem
+        date_time
+        thread
+        chrono
+        regex
+        iostreams
+        program_options
+        mpi
+        serialization
+        REQUIRED)
+
 
 #need this for calling the logger from multiple modules
 add_definitions(-DBOOST_LOG_DYN_LINK)
@@ -190,8 +162,8 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 #   ‘#pragma message: The practice of declaring the Bind placeholders (_1, _2, ...) in the global namespace is deprecated. Please use <boost/bind/bind.hpp> + using namespace boost::placeholders, or define BOOST_BIND_GLOBAL_PLACEHOLDERS to retain the current behavior.’
 add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
-
-find_package(${CGAL} 5.0 REQUIRED)
+find_package(TBB REQUIRED CONFIG)
+find_package(CGAL 5.0 REQUIRED)
 
 # There is a bug in clang <11 (so far), that has a compiler parse error w/ boost 1.71
 # https://bugs.llvm.org/show_bug.cgi?id=43266
@@ -221,7 +193,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
         # new to 4.8 https://gcc.gnu.org/gcc-4.8/changes.html
         set(DEBUG_FLAGS "${DEBUG_FLAGS} -g3 -Og -fno-inline -ggdb")
     else("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang" )
-        set(DEBUG_FLAGS "${DEBUG_FLAGS} -g3 -O0 -ggdb")
+        set(DEBUG_FLAGS "${DEBUG_FLAGS} -g3 -O1 -ggdb")
     endif()
 
     set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE)
@@ -262,64 +234,32 @@ if(USE_OMP)
 endif()
 
 #already makes a target
-find_package(${METEOIO} REQUIRED)
+find_package(MeteoIO REQUIRED)
 
-find_package(${ARMADILLO} REQUIRED)
-create_target(ARMADILLO) #needs to be upper-case
+# needs to be title case
+find_package(Armadillo REQUIRED)
 
-if(BUILD_WITH_CONAN)
-    find_package(${EIGEN3} REQUIRED)
-else()
-    find_package(${EIGEN3} REQUIRED NO_MODULE)
-endif()
+# needs to be upper-case
+# https://cmake.org/cmake/help/latest/module/FindArmadillo.html
+create_target(ARMADILLO)
 
-# The trilinos library may have been built against a custom location blas/openblas
-# If so, conaninfo.txt has information on the custom blas location if given with the -o trilinos:blas_root=<root> option
-# If conaninfo.txt has a custom blas location, extract it and pass it as a hint to find_package(blas) which will detect any blas.
-# Then use the find_package link target in CHM to fully avoid any problems of linking against the wrong blas or not being able to find it.
-#if(BUILD_WITH_CONAN)
-#    if(EXISTS "${CMAKE_BINARY_DIR}/conaninfo.txt")
-#        file(READ ${CMAKE_BINARY_DIR}/conaninfo.txt conaninfotxt)
-#        string(REGEX MATCH "trilinos:blas_root=([^ ]+)lib" blasloc "${conaninfotxt}") # because cmake regex is only greedy
-#        if(NOT "${blasloc}" STREQUAL "")
-#            string(REPLACE "\n" "" blasloc ${CMAKE_MATCH_1}) # strip out a new line we've picked up
-#            message(WARNING "Using the conaninfo.txt trilinos:blas_root=${blasloc}")
-#            set(BLAS_ROOT ${blasloc})
-#        endif()
-#    elseif()
-#        set(blasloc "")
-#    endif()
-#endif()
+find_package(Eigen3 REQUIRED NO_MODULE)
 
-# we build blas from conan so do not do this if we are using the full conan stack
-if(MACOSX AND NOT BUILD_WITH_CONAN)
-
-    execute_process(
-            COMMAND brew --prefix openblas
-            RESULT_VARIABLE BREW_BLAS
-            OUTPUT_VARIABLE BREW_BLAS_PREFIX
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    if(BREW_BLAS EQUAL 0)
-        message(WARNING "Found homebrew OpenBLAS ${BREW_BLAS_PREFIX}" )
-        set(BLAS_ROOT ${BREW_BLAS_PREFIX})
-        set(BLA_VENDOR Generic)
-    endif()
-
-endif()
+set(BLA_VENDOR OpenBLAS)
+find_package(BLAS REQUIRED)
 
 
-find_package(${SPARSEHASH})
-if( ${SPARSEHASH}_FOUND )
+
+find_package(Sparsehash)
+if( Sparsehash_FOUND )
     add_definitions(-DUSE_SPARSEHASH)
 endif()
 
 if( ${USE_TCMALLOC})
-    find_package(${GPERFTOOLS})
+    find_package(Gperftools)
 
     #gperftools may not compile on machines w/o nano sleep so we need to optionally disable if it fails to compile
-    if(${GPERFTOOLS}_FOUND)
+    if(Gperftools_FOUND)
         message(STATUS "Found Tcmalloc, disabling builtin malloc, free")
         set(CHM_BUILD_FLAGS "${CHM_BUILD_FLAGS} -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free")
     endif()
@@ -332,26 +272,28 @@ if( USE_JEMALLOC )
 endif()
 
 
-find_package(${FUNC} REQUIRED)
+find_package(Func REQUIRED)
 
-find_package(${GDAL} 3.0 REQUIRED )
-create_target(${GDAL})
+find_package(GDAL 3.0 REQUIRED )
+create_target(GDAL)
 
-find_package(${PROJ} REQUIRED)
-create_target(${PROJ})
+find_package(PROJ REQUIRED)
+create_target(PROJ)
 
 find_package (Threads REQUIRED)
 
-find_package(${TBB} REQUIRED)
 
-find_package(${GSL} REQUIRED)
-create_target(${GSL})
 
-find_package(${HDF5} COMPONENTS CXX REQUIRED)
-create_target(${HDF5})
+find_package(GSL REQUIRED)
+create_target(GSL)
 
-find_package(${NETCDFCXX} COMPONENTS C CXX REQUIRED)
+find_package(HDF5 COMPONENTS CXX REQUIRED)
+create_target(HDF5)
 
+find_package(NetCDF COMPONENTS C CXX REQUIRED)
+
+find_package(spdlog CONFIG REQUIRED)
+add_compile_definitions(SPDLOG_FMT_EXTERNAL)
 
 #To avoid issues #104, newer VTK version needs to be used.
 #8.1+ needs to be used so that proj4 name-collisions are resolved
@@ -359,7 +301,7 @@ find_package(${NETCDFCXX} COMPONENTS C CXX REQUIRED)
 #N.B: The find VTK doesn't allow for compatibility between major versions. That is, if we ask for v7, v8 won't be allowed.
 #Therefore we need to ensure this version is up-to-date with what we are building. There are likely issues with VTK6 as per issue #104
 # so for now, we will accept finding *any* VTK version, but will flag it and error if we find <=6
-find_package(${VTK}
+find_package(VTK
         9.0
             COMPONENTS
             CommonCore
@@ -372,9 +314,7 @@ find_package(${VTK}
             IOXML
 
             REQUIRED)
-if(NOT ${BUILD_WITH_CONAN})
-    message(STATUS "Found VTK: ${VTK_INCLUDE_DIRS}")
-endif()
+message(STATUS "Found VTK: ${VTK_DIR}")
 
 #create_target(${VTK})
 
@@ -391,8 +331,8 @@ else()
     message(STATUS "gvpr and dot present, module output to pdf will function.")
 endif()
 
-find_package(${TRILINOS} REQUIRED)
-create_target(${TRILINOS})
+find_package(Trilinos 15.0 REQUIRED)
+create_target(Trilinos)
 
 #setup src dirs
 include(third_party/CMakeLists.txt)

@@ -321,9 +321,9 @@ void snow_slide::run(mesh& domain)
                 // Check mass transport balances for current avalanche cell
                 if (std::abs(orig_mass - out_mass) > 0.0001)
                 {
-                    LOG_ERROR << "Moved mass total is " << out_mass;
-                    LOG_ERROR << "diff = " << orig_mass - out_mass;
-                    LOG_ERROR << "Mass balance of avalanche times step was not conserved.";
+                    SPDLOG_ERROR("Moved mass total is {}", out_mass);
+                    SPDLOG_ERROR("diff = {}", orig_mass - out_mass);
+                    SPDLOG_ERROR("Mass balance of avalanche times step was not conserved");
                     CHM_THROW_EXCEPTION(module_error, "Snowslide did not conserve mass");
                 }
             } // end if snowdepth > maxdepth
@@ -393,7 +393,7 @@ void snow_slide::run(mesh& domain)
         {
             //bail
             done = 1;
-            LOG_ERROR << "SnowSlide did not converge after 500 iterations";
+            SPDLOG_ERROR("SnowSlide did not converge after 25 iterations");
         }
 
 #ifdef USE_MPI
@@ -405,15 +405,19 @@ void snow_slide::run(mesh& domain)
 
     }while(!done);
 
-    LOG_DEBUG << "[SnowSlide] needed " << iterations << " iterations";
+    SPDLOG_DEBUG("[SnowSlide] needed {} iterations", iterations);
 
 }
 
 void snow_slide::init(mesh& domain)
 {
-    // Get Parameters that control maxDepth function
-    double avalache_mult = cfg.get("avalache_mult",3178.4);
-    double avalache_pow  = cfg.get("avalache_pow",-1.998);
+//     Parameters from the original snowslide.f code
+//    double avalache_mult = cfg.get("avalache_mult",45538);
+//    double avalache_pow  = cfg.get("avalache_pow",-2.982);
+
+
+    double avalache_mult = cfg.get("avalache_mult", 3178.4); // param from dhiraj
+    double avalache_pow  = cfg.get("avalache_pow", -1.998); // param from dhiraj
 
     // Initialize for each triangle
     for(size_t i=0;i<domain->size_faces();i++)
@@ -429,14 +433,16 @@ void snow_slide::init(mesh& domain)
         }
 
         // Parametrize the Minimum snow holding depth (taken vertically)
-        double slopeDeg = std::max(10.0,face->slope()*180/M_PI);  // radians to degres, limit to >10 degrees to avoid inf
+        // Param is only valid for >10deg slopes
+        double slopeDeg = std::max(10.0,
+                                   face->slope()*180/M_PI);  // radians to degrees
 
         // (m) Estimate min depth that avalanche occurs
         // The max depth parameterization is defined for the vertical case, so we need to correct it to be valid for comparing
         // against the "normal" snow depth
-        d.maxDepth = std::max(avalache_mult * pow(slopeDeg,avalache_pow),
-                              Z_CanTop) *
-                     std::max(0.001,cos(face->slope()));
+        d.maxDepth = std::min(20.0,
+                              std::max(avalache_mult * pow(slopeDeg, avalache_pow) * std::max(0.01,cos(face->slope())),
+                                        Z_CanTop));
 
         // Max of either veg height or derived max holding snow depth.
         (*face)["maxDepth"_s]= d.maxDepth;

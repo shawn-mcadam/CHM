@@ -303,7 +303,8 @@ void Simple_Canopy::run(mesh_elem &face)
 
 
     // Canopy type
-    switch(data.canopyType) {
+    switch(data.canopyType)
+    {
         case 0: // 0 = canopy
         {
             //==============================================================================
@@ -587,23 +588,47 @@ void Simple_Canopy::init(mesh& domain)
 
 	       auto& d = face->make_module_data<Simple_Canopy::data>(ID);
 
-	       // Check if Canopy exists at this face/triangle
+	       // Check if there is some vegetation spec  at this face
 	       if(face->has_vegetation() )
 	       {
-		   // Get Canopy type (CRHM canop classifcation: Canopy, Clearing, or Gap)
-		   d.canopyType       = face->veg_attribute("canopyType");
-		   d.CanopyHeight     = face->veg_attribute("CanopyHeight");
-		   d.LAI              = face->veg_attribute("LAI");
-		   d.rain_load        = 0.0;
-		   d.Snow_load        = 0.0;
-		   d.cum_net_snow     = 0.0; // "Cumulative Canopy unload ", "(mm)"
-		   d.cum_net_rain     = 0.0; // " direct_rain + drip", "(mm)"
-		   d.cum_Subl_Cpy     = 0.0; //  "canopy snow sublimation", "(mm)"
-		   d.cum_intcp_evap   = 0.0; // "HRU Evaporation from interception", "(mm)"
-		   d.cum_SUnload_H2O  = 0.0; // "Cumulative unloaded canopy snow as water", "(mm)"
+                    d.CanopyHeight     = face->veg_attribute("CanopyHeight");
+                    d.LAI              = face->veg_attribute("LAI");
 
-	       } else {
-		 BOOST_THROW_EXCEPTION(missing_value_error() << errstr_info("landcover not defined, but is required for simple_canopy module, please check the configuration file"));
+                    // this parameterization just doesn't work well for LAI below 1.5, especially with tall trees
+                    if(d.CanopyHeight > 0 && d.LAI < 1.5)
+                    {
+                        SPDLOG_ERROR("CanopyHeight was defined for triangle global_id={} but LAI < 1.5; Setting CanopyHeight to zero", face->cell_global_id);
+
+                        d.CanopyHeight = 0;
+//                        CHM_THROW_EXCEPTION(missing_value_error, "CanopyHeight was defined but LAI is zero.");
+                    }
+
+		   // Get Canopy type (CRHM canop classifcation: Canopy, Clearing, or Gap)
+                    // This might not exist if we are using distributed canopy heights
+                    if(face->has_parameter("canopyType"))
+                    {
+                        d.canopyType       = face->veg_attribute("canopyType");
+                    }
+                    else
+                    {
+                        if(d.CanopyHeight < 0.3)
+                            d.canopyType = 1; // clearing
+                        else
+                            d.canopyType = 0; // canopy
+                    }
+
+
+                   d.rain_load        = 0.0;
+                   d.Snow_load        = 0.0;
+                   d.cum_net_snow     = 0.0; // "Cumulative Canopy unload ", "(mm)"
+                   d.cum_net_rain     = 0.0; // " direct_rain + drip", "(mm)"
+                   d.cum_Subl_Cpy     = 0.0; //  "canopy snow sublimation", "(mm)"
+                   d.cum_intcp_evap   = 0.0; // "HRU Evaporation from interception", "(mm)"
+                   d.cum_SUnload_H2O  = 0.0; // "Cumulative unloaded canopy snow as water", "(mm)"
+
+	       } else
+               {
+		 CHM_THROW_EXCEPTION(missing_value_error, "landcover not defined, but is required for simple_canopy module, please check the configuration file");
 	       }
 
     }

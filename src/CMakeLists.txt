@@ -125,57 +125,47 @@ set (HEADER_FILES
 set(EXT_TARGETS
 		${ARPACK_LIBRARY}
 		Threads::Threads
-		${GDAL}::${GDAL}
-		${GSL}::${GSL}
-		${PROJ}::${PROJ}
-		${CGAL}::${CGAL}
-		${HDF5}::${HDF5}
+		GDAL::GDAL
+		GSL::GSL
+		PROJ::PROJ
+		CGAL::CGAL
+		HDF5::HDF5
 
-		${METEOIO}::${METEOIO}
-		${TRILINOS}::${TRILINOS}
-		${SPARSEHASH}::${SPARSEHASH}
+		MeteoIO::MeteoIO
+		Trilinos::Trilinos
+		Sparsehash::Sparsehash
 
-		${FUNC}::${FUNC}
+		Func::Func
+
+		NetCDF::NetCDF
+		TBB::tbb
+		ARMADILLO::ARMADILLO # needs to be upper case
+		Eigen3::Eigen
+
+		BLAS::BLAS
+
+		VTK::CommonCore
+		VTK::CommonDataModel
+		VTK::CommonTransforms
+		VTK::FiltersCore
+		VTK::FiltersGeneral
+		VTK::FiltersGeometry
+		VTK::FiltersSources
+		VTK::IOXML
+
+		Boost::headers
+		Boost::system
+		Boost::filesystem
+		Boost::date_time
+		Boost::thread
+		Boost::regex
+		Boost::iostreams
+		Boost::program_options
+
+		spdlog::spdlog
+
 		CACHE INTERNAL "" FORCE)
 
-
-if(BUILD_WITH_CONAN)
-	list( APPEND EXT_TARGETS
-			netcdf-cxx::netcdf-cxx
-			TBB::tbb
-			Boost::Boost
-			Eigen3::Eigen3
-			armadillo::armadillo
-			vtk::vtk
-
-			)
-else()
-	list( APPEND EXT_TARGETS
-			NetCDF::NetCDF
-			TBB::tbb
-			ARMADILLO::ARMADILLO
-			Eigen3::Eigen
-
-			VTK::CommonCore
-			VTK::CommonDataModel
-			VTK::CommonTransforms
-			VTK::FiltersCore
-			VTK::FiltersGeneral
-			VTK::FiltersGeometry
-			VTK::FiltersSources
-			VTK::IOXML
-
-			Boost::headers
-			Boost::system
-			Boost::filesystem
-			Boost::date_time
-			Boost::log
-			Boost::thread
-			Boost::regex
-			Boost::iostreams
-			Boost::program_options
-			)
-endif()
 
 #handle the optionals
 if(OpenMP_FOUND)
@@ -187,7 +177,7 @@ if(USE_OCL AND OPENCL_FOUND)
 endif()
 
 if(${GPERFTOOLS}_FOUND)
-	list( APPEND EXT_TARGETS ${GPERFTOOLS}::${GPERFTOOLS})
+	list( APPEND EXT_TARGETS Gperftools::Gperftools)
 endif()
 
 if(USE_JEMALLOC)
@@ -195,10 +185,7 @@ if(USE_JEMALLOC)
 endif()
 
 if(MPI_FOUND AND USE_MPI)
-	list( APPEND EXT_TARGETS MPI::MPI_CXX)
-	if(NOT BUILD_WITH_CONAN)
-		list( APPEND EXT_TARGETS Boost::mpi)
-	endif()
+	list( APPEND EXT_TARGETS MPI::MPI_CXX Boost::mpi)
 endif()
 
 
@@ -214,6 +201,9 @@ if(BUILD_WITH_CONAN)
 		set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
 	endif()
 endif()
+
+
+message("-- Final compile: ${CHM_BUILD_FLAGS}")
 
 add_library(CHMmath OBJECT
   math/LinearAlgebra.cpp
@@ -250,11 +240,13 @@ if(MPI_FOUND AND USE_MPI)
 endif()
 
 
-target_compile_features(CHM PRIVATE cxx_std_14)
+
+target_compile_features(CHM PRIVATE cxx_std_20)
 target_link_libraries(
 		CHM
 		CHMmath
 		${EXT_TARGETS}
+		${THIRD_PARTY_TARGETS}
 		${THIRD_PARTY_TARGETS}
 )
 set_target_properties(CHM
@@ -335,7 +327,7 @@ add_executable(
 		preprocessing/partition/main.cpp # this needs to be here so we can reuse CHM_SRCS in the gtest build. but since it links it's own main, we cannot have this one.
 		${CHM_SRCS}
 )
-target_compile_features(partition PRIVATE cxx_std_14)
+target_compile_features(partition PRIVATE cxx_std_20)
 
 
 target_link_libraries(

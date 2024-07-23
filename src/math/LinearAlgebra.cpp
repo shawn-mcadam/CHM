@@ -126,7 +126,8 @@ namespace math
 	Preferred construction of CrsGraph uses a Teuchos::ArrayView<T> for num entries/row
       */
       Teuchos::ArrayView<size_t> num_entries_view(num_entries.data(),ntri*nLayer);
-      m_graph = rcp (new graph_type (m_map, num_entries_view, Tpetra::StaticProfile));
+      m_graph = rcp (new graph_type (m_map, num_entries_view)); // I believe these are all StaticProfile by default now
+
 
       // Set all of the desired nonzero columns in the graph
       // due to insertGlobalIndices args
@@ -171,13 +172,13 @@ namespace math
       }
       if (m_solver.is_null())
 	{
-	  BOOST_THROW_EXCEPTION(module_error() << errstr_info("PBSM3D failed to create solver"));
+	  CHM_THROW_EXCEPTION(module_error, "PBSM3D failed to create solver");
 	}
 
       m_preconditioner = Ifpack2::Factory::create<row_matrix_type>("ILUT", m_matrix);
       if (m_preconditioner.is_null())
 	{
-	  BOOST_THROW_EXCEPTION(module_error() << errstr_info("PBSM3D failed to create preconditioner"));
+	  CHM_THROW_EXCEPTION(module_error, "PBSM3D failed to create preconditioner");
 	}
       ParameterList precondOptions;
       precondOptions.set("fact: drop tolerance", 1e-4);
@@ -236,7 +237,7 @@ namespace math
 	  {
             if (m_comm->getRank() == 0)
 	      {
-		BOOST_THROW_EXCEPTION(module_error() << errstr_info("Belos solver failed to converge"));
+		CHM_THROW_EXCEPTION(module_error, "Belos solver failed to converge");
 	      }
             // return EXIT_FAILURE;
 	  }

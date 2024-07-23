@@ -44,37 +44,52 @@ int main (int argc, char *argv[])
     }
     catch(chm_done& e)
     {
+        // This catches the chm_done exception which we use to handle the version and help commands
         kernel.end();
     }
-    catch( boost::exception& e)
+    catch(const module_error& e)
     {
-        ret = -1;
-        LOG_ERROR << boost::diagnostic_information(e);
+        ret = 1;
+        SPDLOG_ERROR(boost::diagnostic_information(e));
     }
-    catch(std::exception& e)
+    catch(const exception_base& e)
     {
-        ret = -1;
-        LOG_ERROR << boost::diagnostic_information(e);
+        ret = 1;
+        SPDLOG_ERROR(boost::diagnostic_information(e));
     }
-    catch( ...)
+    catch(const std::exception& e)
     {
-       LOG_ERROR << "Unknown exception";
-       ret = -1;
+        ret = 1;
+        SPDLOG_ERROR(boost::diagnostic_information(e));
+    }
+    catch(...)
+    {
+       SPDLOG_ERROR("Unknown exception");
+       ret = 1;
     }
 
     // if we have an exception, ensure we tear down all of the MPI. In Non MPI mode this won't do anything
-    if(ret == -1)
-        kernel.end(true);
+    if(ret == 1)
+       kernel.end(true);
     else
-        kernel.end();
+       kernel.end();
+
     try
     {
-        boost::filesystem::copy_file(kernel.log_file_path,kernel.o_path / "CHM.log", boost::filesystem::copy_option::overwrite_if_exists);
-    }
+
+#if BOOST_VERSION < 107400
+        boost::filesystem::copy_file(kernel.log_file_path,kernel.output_folder_path / "CHM.log", boost::filesystem::copy_option::overwrite_if_exists);
+#else
+        boost::filesystem::copy_file(kernel.log_file_path,kernel.output_folder_path / "CHM.log", boost::filesystem::copy_options::overwrite_existing);
+#endif
+}
+
     catch(...)
     {
 
     }
+
+
 
     return ret;
 }

@@ -51,7 +51,7 @@ Harder_precip_phase::Harder_precip_phase(config_file cfg)
 
 
 
-    LOG_DEBUG << "Successfully instantiated module " << this->ID;
+    SPDLOG_DEBUG("Successfully instantiated module {}",this->ID);
 
 
 }
@@ -107,7 +107,7 @@ void Harder_precip_phase::run(mesh_elem& face)
 
     auto fx = [=](double Ti)
     {
-        return boost::math::make_tuple(
+        return std::make_tuple(
                 T+D*L*(rho/(1000.0)-.611*mw*exp(17.3*Ti/(237.3+Ti))/(R*(Ti+273.15)*(1000.0)))/lambda_t-Ti,
                 D*L*(-0.6110000000e-3*mw*(17.3/(237.3+Ti)-17.3*Ti/pow(237.3+Ti,2))*exp(17.3*Ti/(237.3+Ti))/(R*(Ti+273.15))+0.6110000000e-3*mw*exp(17.3*Ti/(237.3+Ti))/(R*pow(Ti+273.15,2)))/lambda_t-1);
     };
@@ -124,8 +124,8 @@ void Harder_precip_phase::run(mesh_elem& face)
     frTi = std::trunc(100.0*frTi) / 100.0; //truncate to 2 decimal positions
 
     // Bound the ratio to be valid for 3% to 97% as per pers. comms. Harder, 2023.
-    if(frTi < 0.03) //3%
-        frTi = 0.03;
+    if(frTi < 0.03) //3%, floor to zero
+        frTi = 0.00;
     if(frTi > 0.97) // 97%
         frTi = 1.0;
 

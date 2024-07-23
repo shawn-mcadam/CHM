@@ -71,7 +71,7 @@ WindNinja::WindNinja(config_file cfg)
 
     }
 
-    LOG_DEBUG << "Successfully instantiated module " << this->ID;
+    SPDLOG_DEBUG("Successfully instantiated module {}",this->ID);
 }
 
 //Calculates the curvature required
@@ -96,7 +96,7 @@ void WindNinja::init(mesh& domain)
         }
     }
 
-    LOG_DEBUG << "Found " << N_windfield << " windfields";
+    SPDLOG_DEBUG("Found {} windfields", N_windfield);
     try
     {
         // see if we have a manually specified number, error out as this is deprecated
@@ -178,7 +178,7 @@ void WindNinja::init(mesh& domain)
         if(param_found_L_avg.size() == 1) // we found only 1 possible Lavg set of values, so we can use it.
         {
             L_avg = *(param_found_L_avg.begin());
-            LOG_DEBUG << "Using L_avg from parameters. L_avg = " << L_avg;
+            SPDLOG_DEBUG("Using L_avg from parameters. L_avg = {}",L_avg);
         }
         else if(param_found_L_avg.size() > 1 )
         {
@@ -197,7 +197,7 @@ void WindNinja::init(mesh& domain)
         else
         {
             L_avg = -1;
-            LOG_DEBUG << "No L_avg parameter found, assuming tile averaging";
+            SPDLOG_DEBUG("No L_avg parameter found, assuming tile averaging");
         }
     }
 
@@ -281,6 +281,12 @@ void WindNinja::run(mesh& domain)
             {
                 if (is_nan((*s)["U_R"_s]) || is_nan((*s)["vw_dir"_s]))
                     continue;
+
+                if ((*s)["vw_dir"_s] >= 360.0)
+                {
+                    // enforce the criteria that direction must be on interval [0,360)
+                    (*s)["vw_dir"_s] = (*s)["vw_dir"_s] - 360.0;
+                }
 
                 double theta = (*s)["vw_dir"_s] * M_PI / 180.;
 

@@ -314,6 +314,12 @@ public:
 
     bool has_vegetation();
 
+    /**
+     * Retrieves a vegetation attribute for the face. This will preferentially look for a distributed variable,
+     * before falling back to looking for a classified landcover map + paramter table (from config).
+     * @param variable Name of variable to lookup.
+     * @return Value of the variable at this face
+     */
     double veg_attribute(const std::string &variable);
 
     /**
@@ -1678,11 +1684,19 @@ double face<Gt, Fb>::veg_attribute(const std::string &variable)
     {
         int LC = parameter("landcover"_s);
         auto param = _domain->_global->parameters; //this grabs the loaded landcover map
-        result = param.get<double>("landcover." + std::to_string(LC) + "."+variable);
+        try
+        {
+            result = param.get<double>("landcover." + std::to_string(LC) + "."+variable);
+        }
+        catch(const boost::property_tree::ptree_bad_path& e)
+        {
+            CHM_THROW_EXCEPTION(module_error, "Parameter " + variable +" does not exist.");
+        }
+
     }
     else
     {
-        BOOST_THROW_EXCEPTION(module_error() << errstr_info("Parameter " + variable +" does not exist."));
+        CHM_THROW_EXCEPTION(module_error, "Parameter " + variable +" does not exist.");
     }
 
     return result;

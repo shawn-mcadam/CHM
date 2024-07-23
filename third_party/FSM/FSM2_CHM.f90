@@ -120,7 +120,7 @@ subroutine allocate()
   ! Snow and soil layersdo
   allocate(Dzsnow(Nsmax))
   allocate(Dzsoil(Nsoil))
-  Dzsnow = (/0.1, 0.2, 0.4/)
+  Dzsnow = (/0.1, 0.15, 0.25, 0.4, 0.6, 1.0/)
   Dzsoil = (/0.1, 0.2, 0.4, 0.8/)
 
 end subroutine allocate

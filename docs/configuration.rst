@@ -794,27 +794,41 @@ Example
        }
 
 
+.. _target to checkpoint:
 
 checkpoint
 *************
 
-CHM can save its state after a timestep, allowing CHM to resume from this timestep. Further details on can be found in the Checkpointing section.
+CHM can save its state after a timestep, allowing CHM to resume from this timestep.
+Further details on the output format can be found in the :ref:`checkpointing <target to checkpoint page>` section.
+
+To enable checkpoints, ``save_checkpoint`` must be enabled and one of the ``on_*`` options must be supplied. Multiple
+``on_*`` can be combined. For example, ``on_frequency`` and ``on_last`` can be combined to produce
+checkpoints every ``on_frequency`` timesteps as well as on the last timestep.
+
+
+.. warning::
+
+    The configuration file can be modified in between checkpoint runs. However, the changes MUST be coherent with
+    what is saved in the checkpoint file. For example the following is not allowed:
+    a new module is added that does not have checkpointed data.
+
 
 .. confval:: save_checkpoint
 
    :type: boolean
    :default: false
 
-   Enable checkpointing. One of ``frequency`` or ``on_last`` must be set. Must be set true to enable the checkpointing.
+   Enable checkpointing. Must be set true to enable the checkpointing. One of the options for when to checkpoint
+   must also be sent.
 
 
-.. confval:: frequency
+.. confval:: on_frequency
 
    :type: int64
    :default: empty
 
-   The frequency of checkpointing. Checkpoints every ``frequency`` timesteps. Can be used with ``on_last`` to produce
-   checkpoints every ``frequency`` timesteps as well as on the last timestep.
+   The frequency of checkpointing. Checkpoints every ``on_frequency`` timesteps.
 
 .. confval:: on_last
 
@@ -823,12 +837,61 @@ CHM can save its state after a timestep, allowing CHM to resume from this timest
 
    Check point only on the last timestep. Can be used with ``frequency``, but does not require ``frequency`` to be set.
 
+.. confval:: on_wallclock_limit
+
+   :type: bool
+   :default: false
+
+   If the environment variable ``CHM_WALLCLOCK_LIMIT`` is detected at simulation start, then CHM will track how long
+   it has left. When it only has ``minutes_of_wallclock`` minutes left (default = 2 min). ``CHM_WALLCLOCK_LIMIT`` needs
+   to be created from the scheduler environment. How to do so for PBS Pro and a SLURM is given below:
+
+.. code:: shell
+
+    # All PBS / SLURM options here
+    # [...]
+    # Set the env var
+    CHM_WALLCLOCK_LIMIT=$(squeue -j $SLURM_JOB_ID -h --Format TimeLimit)
+    CHM_WALLCLOCK_LIMIT=$(qstat -f $PBS_JOBID | sed -rn 's/.*Resource_List.walltime = (.*)/\1/p')
+
+    # Then run CHM
+    mpirun [...] CHM -f [...]
+
+
+.. confval:: minutes_of_wallclock
+
+    :type: int64
+    :default: 2
+
+    Number of minutes before the wallclock expires to begin checkpointing. Only has an effect if
+    ``on_wallclock_limit=true``.
+
+
 .. confval:: load_checkpoint_path
 
    :type: string
    :default: empty
 
    Path to checkpoint file to load from (specifically, the json file). Can be used with the other checkpointing options.
+
+.. confval:: auto_resume
+
+    :type: bool
+    :default: false
+
+    Set to ``true`` to auto-resume from the most recent checkpoint that exists in ``output_folder/checkpoint``.
+    Doing so allows for easily and repeatedly resuming from a checkpoint file.
+
+
+.. note::
+
+    Upon a successful completion of a simulation of CHM, a sentinel file is written to the output folder
+    "<output_folder>/clean_exit". This will not be written if CHM suspends due to a wall lock limit. Therefor, the
+    intent of this file is to be used to allow repeated automatic requeuing of a job on HPC that have short
+    wallclock limits, i.e., keep requeuing until that file is found.
+
+
+Basic checkpoint example
 
 .. code:: json
 
@@ -841,6 +904,19 @@ CHM can save its state after a timestep, allowing CHM to resume from this timest
      }
 
 
+An example of auto save and resume. This will checkpoint with 5 minutes of wall clock left. Then,
+as long as the same output directory is used, a subsequent run will detect the most recent checkpoint and resume from
+it.
+
+.. code:: json
+
+     "checkpoint":
+     {
+        "save_checkpoint": true,
+        "on_wallclock_limit": true,
+        "minutes_of_wallclock": 5,
+        "auto_resumed": true
+     }
 
 
 
